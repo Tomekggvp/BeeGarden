@@ -10,8 +10,9 @@
 }
 
 body{
-    color: white;
-    background-color: rgba(207, 233, 7, 0.773);
+    
+    background: #C4A32B;
+    background: linear-gradient(90deg, rgba(196, 163, 43, 1) 0%, rgba(249, 253, 29, 1) 50%, rgba(196, 163, 43, 1) 100%);
 }
 
 .no-scrollbar{
