@@ -1,0 +1,53 @@
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@100..900&family=Tenor+Sans&display=swap');
+@import "tailwindcss";
+
+
+
+*{
+    font-family: "Outfit", sans-serif;
+    scrollbar-width: thin;
+    scrollbar-color: #787777 #1e1e1e;
+}
+
+body{
+    color: white;
+    background-color: rgba(207, 233, 7, 0.773);
+}
+
+.no-scrollbar{
+    scrollbar-width: none;
+}
+
+input::-webkit-outer-spin-button,
+input::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+}
+
+::-webkit-calendar-picker-indicator {
+    filter: invert(1);
+}
+
+/* Стилизация ползунка для каста */
+.custom-scrollbar::-webkit-scrollbar {
+  height: 6px; 
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.05); 
+  border-radius: 10px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: #f87171; 
+  border-radius: 10px;
+  transition: background 0.3s;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: #ef4444; 
+}
+
+
+.dark .custom-scrollbar::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.1);
+}
