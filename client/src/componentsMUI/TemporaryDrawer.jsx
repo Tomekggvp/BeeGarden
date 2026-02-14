@@ -5,7 +5,7 @@ import List from '@mui/material/List';
 import ListItem from '@mui/material/ListItem';
 import ListItemButton from '@mui/material/ListItemButton';
 import ListItemText from '@mui/material/ListItemText';
-import { MenuIcon, XIcon } from 'lucide-react';
+import { XIcon } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import React, { useState } from 'react'
 
