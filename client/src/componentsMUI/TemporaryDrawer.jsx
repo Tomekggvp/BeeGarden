@@ -24,6 +24,7 @@ export default function TemporaryDrawer() {
     { label: 'Проверки', path: 'ChecksPerformed'},
     { label: 'Календарь', path: 'Calendar'},
     { label: 'Выбор локации', path: 'Location'},
+    { label: 'Добавить улей', path: ''},
   ]
   const navigate = useNavigate()
   const toggleDrawer = (newOpen) => () => {
