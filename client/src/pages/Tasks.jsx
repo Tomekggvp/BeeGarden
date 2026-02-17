@@ -1,9 +1,10 @@
 import React from 'react'
+import AddBeehiveInfo from '../components/AddBeehiveinfo'
+
 
 const Tasks = () => {
   return (
     <div>
-      Задачи
     </div>
   )
 }
