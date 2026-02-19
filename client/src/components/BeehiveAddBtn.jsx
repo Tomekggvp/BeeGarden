@@ -1,12 +1,15 @@
 import React, { useEffect, useState } from 'react'
-import AddBeehiveInfo from './AddBeehiveinfo'
+import AddBeehiveInfo from './AddBeehiveInfo'
 import BgHome from './BgHome'
+
+
 
 const BeehiveAddBtn = () => {
 
   const [component,setComponent] = useState([])
   const [isModalOpen,setIsModalOpen] = useState(false)
   const [beehiveNum, setBeehiveNum] = useState('')
+  
 
   useEffect(() => {
     const savedComponents = localStorage.getItem('beehiveComponent')
@@ -41,6 +44,8 @@ const BeehiveAddBtn = () => {
   setComponent(component.filter(item => item.id !== id))
   }
 
+ 
+
   const openModal = (e) => {
     e.preventDefault()
     setIsModalOpen(true)
@@ -63,7 +68,9 @@ const BeehiveAddBtn = () => {
         component={component}
         removeComponent={removeComponent}
        />
- 
+
+       
+
             <AddBeehiveInfo
               isOpen={isModalOpen}
               onClose={ () => setIsModalOpen(false)}

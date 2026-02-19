@@ -1,10 +1,12 @@
 import React from 'react'
-import AddBeehiveInfo from '../components/AddBeehiveinfo'
+import BeehiveDetails from '../components/BeehiveDetails'
+
 
 
 const Tasks = () => {
   return (
     <div>
+<BeehiveDetails/>
     </div>
   )
 }
