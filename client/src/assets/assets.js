@@ -11,6 +11,6 @@ export const  queenBee = [
     {name: 'Карник'},
     {name: 'Карпатка'},
     {name: 'Среднерусская'},
-    {name: 'Итальянская'}
+   
 ]
    

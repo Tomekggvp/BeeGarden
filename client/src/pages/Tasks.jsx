@@ -1,12 +1,15 @@
 import React from 'react'
-import BeehiveDetails from '../components/BeehiveDetails'
+import Date from '../componentsMUI/DateSelect'
+
 
 
 
 const Tasks = () => {
   return (
     <div>
-<BeehiveDetails/>
+
+  
+
     </div>
   )
 }
