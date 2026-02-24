@@ -1,83 +1,86 @@
 import React, { useEffect, useState } from 'react'
-import AddBeehiveInfo from './AddBeehiveInfo'
+import AddBeehiveInfo from './AddBeehiveinfo'
 import BgHome from './BgHome'
-
-
+import BeehiveDetails from './BeehiveDetails'
 
 const BeehiveAddBtn = () => {
-
-  const [component,setComponent] = useState([])
-  const [isModalOpen,setIsModalOpen] = useState(false)
+  const [component, setComponent] = useState([])
+  const [isAddModalOpen, setIsAddModalOpen] = useState(false)
   const [beehiveNum, setBeehiveNum] = useState('')
   
+  const [isDetailsOpen, setIsDetailsOpen] = useState(false)
+  const [selectedHiveId, setSelectedHiveId] = useState(null)
 
   useEffect(() => {
-    const savedComponents = localStorage.getItem('beehiveComponent')
-    if(savedComponents) {
-      setComponent(JSON.parse(savedComponents))
-    }
-  },[])
+    const saved = localStorage.getItem('beehiveComponent')
+    if (saved) setComponent(JSON.parse(saved))
+  }, [])
 
   useEffect(() => {
     localStorage.setItem('beehiveComponent', JSON.stringify(component))
-  },[component])
+  }, [component])
 
 
   const handleConfirm = () => {
-    if(!beehiveNum) return;
+    if (!beehiveNum) return;
+
+
+    if (component.find(item => item.id === beehiveNum)) {
+      alert("Улей с таким номером уже существует!");
+      return;
+    }
 
     const newComponent = {
-      id: `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
-      
+      id: beehiveNum, 
       number: beehiveNum, 
       createdAt: new Date().toISOString()
     }
 
     setComponent([...component, newComponent]);
-    
-    setBeehiveNum('')
-    setIsModalOpen(false)
-
+    setBeehiveNum('');
+    setIsAddModalOpen(false);
   }
 
-  const removeComponent = (id) => {
-  setComponent(component.filter(item => item.id !== id))
+  const handleOpenDetails = (id) => {
+    setSelectedHiveId(id);
+    setIsDetailsOpen(true);
   }
 
- 
-
-  const openModal = (e) => {
-    e.preventDefault()
-    setIsModalOpen(true)
-
-  }
- 
   return (
     <div> 
-       <div className='flex flex-col justify-end items-center'>
-         <a onClick={openModal}
-          href="#"
-          className='inline-block  px-4 sm:px-6 md:px-8  py-2 sm:py-2.5 md:py-3 text-lg sm:text-xl md:text-2xl bg-linear-to-b from-[#e8e805] to-[#f7c223] hover:from-[#f7c223] hover:to-[#e8e805] text-black font-bold font-sans no-underline rounded-lg cursor-pointer shadow-[0_10px_14px_-7px_#276873] active:relative active:top-px transition-all duration-150 '>
+      <div className='flex flex-col justify-end items-center'>
+        <button 
+          onClick={() => setIsAddModalOpen(true)}
+          className='px-8 py-3 bg-yellow-400 font-bold rounded-lg shadow-md hover:bg-yellow-500 transition-all'
+        >
+          Добавить улей
+        </button>
+      </div>
 
-            Добавить
-
-         </a>
-       </div>
-
-       <BgHome 
+      <BgHome 
         component={component}
-        removeComponent={removeComponent}
-       />
+        removeComponent={(id) => setComponent(component.filter(item => item.id !== id))}
+        onOpenDetails={handleOpenDetails} 
+      />
 
-       
+      <AddBeehiveInfo
+        isOpen={isAddModalOpen}
+        onClose={() => setIsAddModalOpen(false)}
+        onConfirm={handleConfirm}
+        beehiveNum={beehiveNum}
+        setBeehiveNum={setBeehiveNum}
+      />
 
-            <AddBeehiveInfo
-              isOpen={isModalOpen}
-              onClose={ () => setIsModalOpen(false)}
-              onConfirm={handleConfirm}
-              beehiveNum={beehiveNum}
-              setBeehiveNum={setBeehiveNum}
-            />
+      {isDetailsOpen && (
+        <BeehiveDetails 
+          isOpen={isDetailsOpen}
+          onClose={() => {
+            setIsDetailsOpen(false);
+            setSelectedHiveId(null);
+          }}
+          hiveId={selectedHiveId}
+        />
+      )}
     </div>
   )
 }
