@@ -4,6 +4,8 @@ import DateSelect from '../componentsMUI/DateSelect';
 import dayjs from 'dayjs';
 import { X } from 'lucide-react';
 
+const API_URL = 'https://beegarden.onrender.com';
+
 const BeehiveDetails = ({ isOpen, onClose, hiveId, session }) => {
     const [details, setDetails] = useState({ breed: null, swarms: '', date: null });
     const [loading, setLoading] = useState(false);
@@ -11,7 +13,8 @@ const BeehiveDetails = ({ isOpen, onClose, hiveId, session }) => {
     useEffect(() => {
         if (isOpen && hiveId && session?.user?.id) {
             setLoading(true);
-            fetch(`http://localhost:5000/api/beehive/${hiveId}?user_id=${session.user.id}`)
+
+            fetch(`${API_URL}/api/beehive/${hiveId}?user_id=${session.user.id}`)
                 .then(res => res.json())
                 .then(data => {
                     if (data && data.hive_id) {
@@ -45,7 +48,7 @@ const BeehiveDetails = ({ isOpen, onClose, hiveId, session }) => {
                 install_date: details.date ? details.date.format('YYYY-MM-DD') : null
             };
 
-            const res = await fetch('http://localhost:5000/api/beehive', {
+            const res = await fetch(`${API_URL}/api/beehive`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(payload)

@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react'
-import AddBeehiveInfo from './AddBeehiveinfo'
+import AddBeehiveInfo from './AddBeehiveInfo.jsx'
 import BgHome from './BgHome'
 import BeehiveDetails from './BeehiveDetails'
 
