@@ -3,7 +3,7 @@ import AddBeehiveInfo from './AddBeehiveinfo'
 import BgHome from './BgHome'
 import BeehiveDetails from './BeehiveDetails'
 
-const BeehiveAddBtn = () => {
+const BeehiveAddBtn = ({ session }) => {
   const [component, setComponent] = useState([])
   const [isAddModalOpen, setIsAddModalOpen] = useState(false)
   const [beehiveNum, setBeehiveNum] = useState('')
@@ -20,10 +20,8 @@ const BeehiveAddBtn = () => {
     localStorage.setItem('beehiveComponent', JSON.stringify(component))
   }, [component])
 
-
   const handleConfirm = () => {
     if (!beehiveNum) return;
-
 
     if (component.find(item => item.id === beehiveNum)) {
       alert("Улей с таким номером уже существует!");
@@ -48,7 +46,7 @@ const BeehiveAddBtn = () => {
 
   return (
     <div> 
-      <div className='flex flex-col justify-end items-center'>
+      <div className='flex flex-col justify-end items-center mb-6'>
         <button 
           onClick={() => setIsAddModalOpen(true)}
           className='px-8 py-3 bg-yellow-400 font-bold rounded-lg shadow-md hover:bg-yellow-500 transition-all'
@@ -71,6 +69,7 @@ const BeehiveAddBtn = () => {
         setBeehiveNum={setBeehiveNum}
       />
 
+
       {isDetailsOpen && (
         <BeehiveDetails 
           isOpen={isDetailsOpen}
@@ -79,6 +78,7 @@ const BeehiveAddBtn = () => {
             setSelectedHiveId(null);
           }}
           hiveId={selectedHiveId}
+          session={session} 
         />
       )}
     </div>
