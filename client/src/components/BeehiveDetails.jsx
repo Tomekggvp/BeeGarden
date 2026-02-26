@@ -3,8 +3,7 @@ import ComboBox from '../componentsMUI/ComboBox';
 import DateSelect from '../componentsMUI/DateSelect';
 import dayjs from 'dayjs';
 import { X } from 'lucide-react';
-
-const API_URL = 'https://beegarden.onrender.com';
+import api from '../api/axios';
 
 const BeehiveDetails = ({ isOpen, onClose, hiveId, session }) => {
     const [details, setDetails] = useState({ breed: null, swarms: '', date: null });
@@ -14,21 +13,25 @@ const BeehiveDetails = ({ isOpen, onClose, hiveId, session }) => {
         if (isOpen && hiveId && session?.user?.id) {
             setLoading(true);
 
-            fetch(`${API_URL}/api/beehive/${hiveId}?user_id=${session.user.id}`)
-                .then(res => res.json())
-                .then(data => {
-                    if (data && data.hive_id) {
-                        setDetails({
-                            breed: data.breed || null,
-                            swarms: data.swarms || '',
-                            date: data.install_date ? dayjs(data.install_date) : null
-                        });
-                    } else {
-                        setDetails({ breed: null, swarms: '', date: null });
-                    }
-                })
-                .catch(err => console.error("Load error:", err))
-                .finally(() => setLoading(false));
+            api.get(`/api/beehive/${hiveId}`, {
+                params: { user_id: session.user.id }
+            })
+            .then(res => {
+                const data = res.data; 
+                if (data && data.hive_id) {
+                    setDetails({
+                        breed: data.breed || null,
+                        swarms: data.swarms || '',
+                        date: data.install_date ? dayjs(data.install_date) : null
+                    });
+                } else {
+                    setDetails({ breed: null, swarms: '', date: null });
+                }
+            })
+            .catch(err => {
+                console.error("Load error:", err.response?.data || err.message);
+            })
+            .finally(() => setLoading(false));
         }
     }, [isOpen, hiveId, session]);
 
@@ -48,20 +51,12 @@ const BeehiveDetails = ({ isOpen, onClose, hiveId, session }) => {
                 install_date: details.date ? details.date.format('YYYY-MM-DD') : null
             };
 
-            const res = await fetch(`${API_URL}/api/beehive`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(payload)
-            });
+            await api.post('/api/beehive', payload);
 
-            if (res.ok) {
-                onClose();
-            } else {
-                const errData = await res.json();
-                throw new Error(errData.error || "Ошибка сохранения");
-            }
+            onClose();
         } catch (err) {
-            alert(err.message);
+            const errorMessage = err.response?.data?.error || "Ошибка сохранения";
+            alert(errorMessage);
         } finally {
             setLoading(false);
         }
