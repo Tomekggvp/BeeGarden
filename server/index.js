@@ -6,68 +6,56 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-// 1. Получение ВСЕХ ульев пользователя (для карты)
+// --- СПИСОК УЛЬЕВ ---
+
 app.get('/api/hives', async (req, res) => {
     const { user_id } = req.query;
-    if (!user_id) return res.status(401).json({ error: "Unauthorized" });
-
     const { data, error } = await supabase
         .from('hives')
         .select('*')
         .eq('user_id', user_id)
         .order('created_at', { ascending: true });
-
     if (error) return res.status(500).json({ error: error.message });
     res.json(data || []);
 });
 
-// 2. Добавление нового улья в список
 app.post('/api/hives', async (req, res) => {
     const { user_id, hive_number } = req.body;
-    if (!user_id || !hive_number) return res.status(400).json({ error: "Missing data" });
-
     const { data, error } = await supabase
         .from('hives')
         .insert([{ user_id, hive_number }])
-        .select()
-        .single();
-
+        .select().single();
     if (error) return res.status(400).json({ error: error.message });
     res.json(data);
 });
 
-// 3. Удаление улья из списка
 app.delete('/api/hives/:hive_number', async (req, res) => {
     const { hive_number } = req.params;
     const { user_id } = req.query;
-
     const { error } = await supabase
         .from('hives')
         .delete()
         .eq('hive_number', hive_number)
         .eq('user_id', user_id);
-
     if (error) return res.status(400).json({ error: error.message });
     res.json({ success: true });
 });
 
-// 4. Получение деталей конкретного улья (модалка)
+// --- ДЕТАЛИ УЛЬЯ ---
+
 app.get('/api/beehive/:id', async (req, res) => {
     const { id } = req.params;
     const { user_id } = req.query;
-
     const { data, error } = await supabase
         .from('beehive_details')
         .select('*')
         .eq('hive_id', id)
         .eq('user_id', user_id)
         .single();
-
     if (error && error.code !== 'PGRST116') return res.status(500).json({ error: error.message });
     res.json(data || {});
 });
 
-// 5. Сохранение/Обновление деталей улья
 app.post('/api/beehive', async (req, res) => {
     const { hive_id, user_id, breed, swarms, install_date } = req.body;
     const { error } = await supabase
@@ -79,10 +67,9 @@ app.post('/api/beehive', async (req, res) => {
             swarms: parseInt(swarms) || 0,
             install_date
         }, { onConflict: 'hive_id,user_id' });
-
     if (error) return res.status(400).json({ error: error.message });
     res.json({ success: true });
 });
 
 const PORT = process.env.PORT || 10000;
-app.listen(PORT, () => console.log(`🚀 Server running on port ${PORT}`));
+app.listen(PORT, () => console.log(`🚀 Server on port ${PORT}`));
