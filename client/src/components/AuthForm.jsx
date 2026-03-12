@@ -53,7 +53,7 @@ const AuthForm = () => {
           onClick={() => setIsSignUp(!isSignUp)}
           className="w-full mt-4 text-sm text-gray-500 hover:text-gray-800 transition-colors"
         >
-          {isSignUp ? 'Уже есть аккаунт? Войти' : 'Нет аккаунта? Зарегистрироваться'}
+         
         </button>
       </div>
     </div>
