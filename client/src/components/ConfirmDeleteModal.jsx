@@ -27,10 +27,10 @@ const ConfirmDeleteModal = ({ isOpen, onClose, onConfirm, hiveId }) => {
         <button
           type="button"
           onClick={handleClose}
-          className="absolute right-4 top-4 rounded-lg p-2 text-[#9a5a00] transition-colors hover:bg-[#fff4cc] hover:text-[#2f2100]"
+          className="absolute right-4 top-4 flex h-8 w-8 items-center justify-center rounded-full text-[#9a5a00] transition-colors hover:bg-[#fff4cc] hover:text-[#2f2100]"
           aria-label="Закрыть"
         >
-          <X size={20} />
+          <X size={18} />
         </button>
 
         <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-red-50 text-red-600">

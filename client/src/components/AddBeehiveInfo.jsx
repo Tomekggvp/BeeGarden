@@ -14,10 +14,10 @@ const AddBeehiveInfo = ({ isOpen, onClose, onConfirm, beehiveNum, setBeehiveNum,
         <button
           type="button"
           onClick={onClose}
-          className="absolute right-4 top-4 rounded-lg p-2 text-[#9a5a00] transition-colors hover:bg-[#fff4cc] hover:text-[#2f2100]"
+          className="absolute right-4 top-4 flex h-8 w-8 items-center justify-center rounded-full text-[#9a5a00] transition-colors hover:bg-[#fff4cc] hover:text-[#2f2100]"
           aria-label="Закрыть"
         >
-          <XIcon size={22} />
+          <XIcon size={18} />
         </button>
 
         <p className="mb-2 text-xs font-black uppercase tracking-[0.24em] text-[#9a5a00]">

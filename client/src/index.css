@@ -10,10 +10,7 @@
 
 body{
     min-height: 100vh;
-    background:
-      linear-gradient(90deg, rgba(255, 168, 0, 0.28) 0 20%, transparent 20% 100%),
-      linear-gradient(180deg, rgba(255, 217, 74, 0.72) 0 160px, transparent 160px),
-      #fff1ad;
+    background: linear-gradient(145deg, #ffe05a 0%, #ff8f12 100%);
 }
 
 #root {
@@ -64,11 +61,12 @@ input::-webkit-inner-spin-button {
 
 .apiary-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(118px, 1fr));
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   align-items: center;
-  gap: clamp(12px, 2vw, 22px);
-  min-height: 380px;
-  padding: clamp(10px, 2.4vw, 28px);
+  justify-content: center;
+  gap: clamp(0px, 0.2vw, 3px);
+  min-height: 190px;
+  padding: clamp(2px, 0.8vw, 10px);
 }
 
 .hive-button {
@@ -84,7 +82,7 @@ input::-webkit-inner-spin-button {
 
 @media (min-width: 768px) {
   .apiary-grid {
-    grid-template-columns: repeat(auto-fit, minmax(142px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(148px, 156px));
   }
 }
 
