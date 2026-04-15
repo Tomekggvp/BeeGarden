@@ -1,74 +1,83 @@
-import React, { useState } from 'react';
-import { AlertTriangle, X } from 'lucide-react';
+import { useState } from 'react'
+import { AlertTriangle, X } from 'lucide-react'
 
 const ConfirmDeleteModal = ({ isOpen, onClose, onConfirm, hiveId }) => {
-  const [input, setInput] = useState('');
+  const [input, setInput] = useState('')
 
-  if (!isOpen) return null;
+  if (!isOpen) return null
 
-  const isMatched = input === String(hiveId);
+  const isMatched = input === String(hiveId)
   const handleClose = () => {
-    setInput('');
-    onClose();
-  };
+    setInput('')
+    onClose()
+  }
   const handleConfirm = () => {
-    setInput('');
-    onConfirm();
-  };
+    setInput('')
+    onConfirm()
+  }
 
   return (
-    <div className="fixed inset-0 z-[10000] flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-in fade-in duration-200">
-      <div 
-        className="bg-white rounded-3xl shadow-2xl w-full max-w-sm p-6 relative animate-in zoom-in duration-200"
-        onClick={(e) => e.stopPropagation()}
-      >
-        <button onClick={handleClose} className="absolute top-4 right-4 text-gray-400 hover:text-gray-600">
+    <div className="fixed inset-0 z-[10000] flex items-center justify-center p-4">
+      <div
+        className="absolute inset-0 bg-[#111827]/35 backdrop-blur-sm"
+        onClick={handleClose}
+      />
+
+      <div className="relative w-full max-w-sm rounded-lg border border-[#f1d88a] bg-[#fffdf7] p-6 shadow-[0_24px_70px_rgba(93,58,0,0.18)]">
+        <button
+          type="button"
+          onClick={handleClose}
+          className="absolute right-4 top-4 rounded-lg p-2 text-[#9a5a00] transition-colors hover:bg-[#fff4cc] hover:text-[#2f2100]"
+          aria-label="Закрыть"
+        >
           <X size={20} />
         </button>
 
-        <div className="flex flex-col items-center text-center">
-          <div className="w-16 h-16 bg-red-50 rounded-full flex items-center justify-center mb-4">
-            <AlertTriangle className="text-red-500" size={32} />
-          </div>
-          
-          <h3 className="text-xl font-bold text-gray-900 mb-2">Удалить улей №{hiveId}?</h3>
-          <p className="text-sm text-gray-500 mb-6">
-            Это действие необратимо. Все данные о пчелах будут стерты.
-          </p>
+        <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-red-50 text-red-600">
+          <AlertTriangle size={26} />
+        </div>
 
-          <div className="w-full mb-6">
-            <label className="block text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2 text-left">
-              Введите номер улья для подтверждения
-            </label>
-            <input
-              type="text"
-              value={input}
-              onChange={(e) => setInput(e.target.value)}
-              placeholder={`Напишите ${hiveId}`}
-              className="w-full px-4 py-3 bg-gray-50 border-2 border-gray-100 rounded-xl outline-none focus:border-red-400 transition-all text-center font-bold text-lg"
-              autoFocus
-            />
-          </div>
+        <h3 className="mt-5 font-['Tenor_Sans'] text-3xl leading-none text-[#2f2100]">
+          Удалить улей №{hiveId}?
+        </h3>
+        <p className="mt-3 text-sm font-semibold text-[#7a5a1a]">
+          Данные по этому улью будут удалены без восстановления.
+        </p>
 
-          <div className="flex gap-3 w-full">
-            <button
-              onClick={handleClose}
-              className="flex-1 px-4 py-3 bg-gray-100 hover:bg-gray-200 text-gray-600 font-bold rounded-xl transition-all"
-            >
-              Отмена
-            </button>
-            <button
-              disabled={!isMatched}
-              onClick={handleConfirm}
-              className="flex-1 px-4 py-3 bg-red-500 hover:bg-red-600 disabled:opacity-30 disabled:cursor-not-allowed text-white font-bold rounded-xl shadow-lg shadow-red-200 transition-all active:scale-95"
-            >
-              Удалить
-            </button>
-          </div>
+        <div className="mt-6">
+          <label className="mb-2 block text-xs font-black uppercase tracking-[0.18em] text-[#9a5a00]">
+            Введите номер улья
+          </label>
+          <input
+            type="text"
+            value={input}
+            onChange={(event) => setInput(event.target.value)}
+            placeholder={`Напишите ${hiveId}`}
+            className="w-full rounded-lg border-2 border-[#f1d88a] bg-white px-4 py-3 text-center text-lg font-black text-[#2f2100] outline-none transition-all focus:border-red-400 focus:ring-4 focus:ring-red-100"
+            autoFocus
+          />
+        </div>
+
+        <div className="mt-6 flex gap-3">
+          <button
+            type="button"
+            onClick={handleClose}
+            className="flex-1 rounded-lg border border-[#f1d88a] px-4 py-3 font-bold text-[#7a5a1a] transition-colors hover:bg-[#fff4cc]"
+          >
+            Отмена
+          </button>
+          <button
+            type="button"
+            disabled={!isMatched}
+            onClick={handleConfirm}
+            className="flex-1 rounded-lg bg-red-500 px-4 py-3 font-black text-white shadow-sm transition-all hover:bg-red-600 active:scale-95 disabled:cursor-not-allowed disabled:opacity-30"
+          >
+            Удалить
+          </button>
         </div>
       </div>
     </div>
-  );
-};
+  )
+}
 
-export default ConfirmDeleteModal;
+export default ConfirmDeleteModal

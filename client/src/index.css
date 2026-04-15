@@ -9,9 +9,17 @@
 }
 
 body{
-    
-    background: #C4A32B;
-    background: linear-gradient(90deg, rgba(196, 163, 43, 1) 0%, rgba(249, 253, 29, 1) 50%, rgba(196, 163, 43, 1) 100%);
+    min-height: 100vh;
+    background:
+      linear-gradient(90deg, rgba(248, 180, 0, 0.18) 0 20%, transparent 20% 100%),
+      linear-gradient(180deg, rgba(255, 210, 74, 0.42) 0 160px, transparent 160px),
+      repeating-linear-gradient(0deg, rgba(154, 90, 0, 0.055) 0 1px, transparent 1px 42px),
+      repeating-linear-gradient(90deg, rgba(154, 90, 0, 0.055) 0 1px, transparent 1px 42px),
+      #e8ffd8;
+}
+
+#root {
+  min-height: 100vh;
 }
 
 .no-scrollbar{
@@ -50,4 +58,111 @@ input::-webkit-inner-spin-button {
 
 .dark .custom-scrollbar::-webkit-scrollbar-track {
   background: rgba(255, 255, 255, 0.1);
+}
+
+.apiary-shell {
+  isolation: isolate;
+}
+
+.apiary-topline {
+  background: linear-gradient(90deg, #fff06a 0%, #f8b400 48%, #ffd24a 100%);
+}
+
+.apiary-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(118px, 1fr));
+  align-items: center;
+  gap: clamp(12px, 2vw, 22px);
+  min-height: 380px;
+  padding: clamp(10px, 2.4vw, 28px);
+  background:
+    linear-gradient(90deg, rgba(224, 120, 0, 0.16) 0 1px, transparent 1px),
+    linear-gradient(0deg, rgba(224, 120, 0, 0.16) 0 1px, transparent 1px),
+    linear-gradient(135deg, rgba(255, 168, 54, 0.22), rgba(255, 236, 177, 0.38));
+  background-size: 44px 44px;
+}
+
+.hive-button {
+  display: flex;
+  width: 100%;
+  justify-content: center;
+}
+
+.hive-button:focus-visible {
+  outline: 3px solid rgba(248, 180, 0, 0.58);
+  outline-offset: 4px;
+}
+
+@media (min-width: 768px) {
+  .apiary-grid {
+    grid-template-columns: repeat(auto-fit, minmax(142px, 1fr));
+  }
+}
+
+.menu-overlay {
+  animation: menuOverlayIn 240ms ease-out both;
+}
+
+.menu-panel {
+  animation: menuPanelSlideIn 430ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.menu-close {
+  animation: menuFadeRise 300ms ease-out 120ms both;
+}
+
+.menu-kicker {
+  animation: menuFadeRise 320ms ease-out 90ms both;
+}
+
+.menu-item {
+  transition: color 180ms ease, transform 180ms ease;
+}
+
+.menu-item:hover {
+  transform: translateY(-2px) scale(1.03);
+}
+
+@keyframes menuOverlayIn {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes menuPanelSlideIn {
+  from {
+    transform: translateX(-100%);
+  }
+
+  to {
+    transform: translateX(0);
+  }
+}
+
+@keyframes menuFadeRise {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .menu-overlay,
+  .menu-panel,
+  .menu-close,
+  .menu-kicker,
+  .menu-item {
+    animation: none;
+    opacity: 1;
+    transform: none;
+  }
 }

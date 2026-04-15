@@ -1,117 +1,131 @@
-import React, { useState, useEffect } from 'react';
-import ComboBox from '../componentsMUI/ComboBox';
-import DateSelect from '../componentsMUI/DateSelect';
-import dayjs from 'dayjs';
-import { X } from 'lucide-react';
-import api from '../api/axios';
+import { useEffect, useState } from 'react'
+import dayjs from 'dayjs'
+import { X } from 'lucide-react'
+import ComboBox from '../componentsMUI/ComboBox'
+import DateSelect from '../componentsMUI/DateSelect'
+import api from '../api/axios'
 
 const BeehiveDetails = ({ isOpen, onClose, hiveId, session }) => {
-    const [details, setDetails] = useState({ breed: null, swarms: '', date: null });
-    const [loading, setLoading] = useState(false);
+  const [details, setDetails] = useState({ breed: null, swarms: '', date: null })
+  const [loading, setLoading] = useState(false)
 
-    useEffect(() => {
-        if (isOpen && hiveId && session?.user?.id) {
-            setLoading(true);
+  useEffect(() => {
+    if (isOpen && hiveId && session?.user?.id) {
+      setLoading(true)
 
-            api.get(`/api/beehive/${hiveId}`, {
-                params: { user_id: session.user.id }
+      api.get(`/api/beehive/${hiveId}`, {
+        params: { user_id: session.user.id },
+      })
+        .then((res) => {
+          const data = res.data
+
+          if (data && data.hive_id) {
+            setDetails({
+              breed: data.breed || null,
+              swarms: data.swarms || '',
+              date: data.install_date ? dayjs(data.install_date) : null,
             })
-            .then(res => {
-                const data = res.data; 
-                if (data && data.hive_id) {
-                    setDetails({
-                        breed: data.breed || null,
-                        swarms: data.swarms || '',
-                        date: data.install_date ? dayjs(data.install_date) : null
-                    });
-                } else {
-                    setDetails({ breed: null, swarms: '', date: null });
-                }
-            })
-            .catch(err => {
-                console.error("Load error:", err.response?.data || err.message);
-            })
-            .finally(() => setLoading(false));
-        }
-    }, [isOpen, hiveId, session]);
+          } else {
+            setDetails({ breed: null, swarms: '', date: null })
+          }
+        })
+        .catch((err) => {
+          console.error('Load error:', err.response?.data || err.message)
+        })
+        .finally(() => setLoading(false))
+    }
+  }, [isOpen, hiveId, session])
 
-    if (!isOpen) return null;
+  if (!isOpen) return null
 
-    const handleSave = async (e) => {
-        e.preventDefault();
-        if (!session?.user?.id) return alert("Вы не авторизованы");
+  const handleSave = async (event) => {
+    event.preventDefault()
+    if (!session?.user?.id) return alert('Вы не авторизованы')
 
-        setLoading(true);
-        try {
-            const payload = {
-                hive_id: String(hiveId),
-                user_id: session.user.id,
-                breed: details.breed,
-                swarms: details.swarms,
-                install_date: details.date ? details.date.format('YYYY-MM-DD') : null
-            };
+    setLoading(true)
+    try {
+      const payload = {
+        hive_id: String(hiveId),
+        user_id: session.user.id,
+        breed: details.breed,
+        swarms: details.swarms,
+        install_date: details.date ? details.date.format('YYYY-MM-DD') : null,
+      }
 
-            await api.post('/api/beehive', payload);
+      await api.post('/api/beehive', payload)
+      onClose()
+    } catch (err) {
+      const errorMessage = err.response?.data?.error || 'Ошибка сохранения'
+      alert(errorMessage)
+    } finally {
+      setLoading(false)
+    }
+  }
 
-            onClose();
-        } catch (err) {
-            const errorMessage = err.response?.data?.error || "Ошибка сохранения";
-            alert(errorMessage);
-        } finally {
-            setLoading(false);
-        }
-    };
+  return (
+    <div className="fixed inset-0 z-[9999] flex items-start justify-center overflow-y-auto p-4 sm:items-center">
+      <div
+        className="absolute inset-0 bg-[#111827]/35 backdrop-blur-sm"
+        onClick={onClose}
+      />
 
-    return (
-        <div 
-            className='fixed inset-0 z-[9999] flex justify-center items-start sm:items-center p-2 sm:p-4 bg-black/60 backdrop-blur-sm overflow-y-auto'
-            onClick={onClose}
+      <div
+        className="relative my-6 w-full max-w-md rounded-lg border border-[#f1d88a] bg-[#fffdf7] p-6 shadow-[0_24px_70px_rgba(93,58,0,0.18)]"
+        onClick={(event) => event.stopPropagation()}
+      >
+        <button
+          type="button"
+          onClick={onClose}
+          className="absolute right-4 top-4 rounded-lg p-2 text-[#9a5a00] transition-colors hover:bg-[#fff4cc] hover:text-[#2f2100]"
+          aria-label="Закрыть"
         >
-            <div 
-                className='relative bg-white rounded-3xl shadow-2xl w-full max-w-md p-6 sm:p-8 my-8 animate-in zoom-in duration-200'
-                onClick={(e) => e.stopPropagation()} 
-            >
-                <button onClick={onClose} className="absolute top-4 right-4 text-gray-400 hover:text-red-500 p-2">
-                    <X size={24} />
-                </button>
+          <X size={22} />
+        </button>
 
-                <h2 className="text-2xl font-bold mb-6 text-center text-gray-800">Улей № {hiveId}</h2>
-                
-                <form onSubmit={handleSave}>
-                    <div className="grid gap-5 mb-8">
-                        <ComboBox 
-                            value={details.breed} 
-                            onChange={(v) => setDetails({...details, breed: v})} 
-                        />
-                        
-                        <div className="flex flex-col">
-                            <label className="mb-2 text-sm font-medium text-gray-700">Количество роений</label>
-                            <input 
-                                type="number" 
-                                value={details.swarms} 
-                                onChange={(e) => setDetails({...details, swarms: e.target.value})}
-                                className="bg-gray-50 border border-gray-300 rounded-xl px-4 py-3 outline-none focus:border-yellow-400 text-base" 
-                                required 
-                            />
-                        </div>
+        <p className="mb-2 text-xs font-black uppercase tracking-[0.24em] text-[#9a5a00]">
+          Карточка улья
+        </p>
+        <h2 className="font-['Tenor_Sans'] text-4xl leading-none text-[#2f2100]">
+          Улей №{hiveId}
+        </h2>
 
-                        <DateSelect 
-                            value={details.date} 
-                            onChange={(v) => setDetails({...details, date: v})} 
-                        />
-                    </div>
+        <form onSubmit={handleSave} className="mt-6">
+          <div className="grid gap-5">
+            <ComboBox
+              value={details.breed}
+              onChange={(value) => setDetails({ ...details, breed: value })}
+            />
 
-                    <button 
-                        type="submit" 
-                        disabled={loading}
-                        className="w-full bg-yellow-300 hover:bg-yellow-400 font-bold py-4 rounded-2xl shadow-lg transition-all active:scale-95 disabled:opacity-50"
-                    >
-                        {loading ? 'Сохранение...' : 'Сохранить данные'}
-                    </button>
-                </form>
+            <div className="flex flex-col">
+              <label className="mb-2 block text-sm font-bold text-[#7a5a1a]">
+                Количество роений
+              </label>
+              <input
+                type="number"
+                value={details.swarms}
+                onChange={(event) => setDetails({ ...details, swarms: event.target.value })}
+                className="rounded-lg border-2 border-[#f1d88a] bg-white px-4 py-3 text-base font-bold text-[#2f2100] outline-none transition-all focus:border-[#f8b400] focus:ring-4 focus:ring-[#f8b400]/20"
+                required
+              />
             </div>
-        </div>
-    );
-};
 
-export default BeehiveDetails;
+            <DateSelect
+              value={details.date}
+              onChange={(value) => setDetails({ ...details, date: value })}
+            />
+          </div>
+
+          <button
+            type="submit"
+            disabled={loading}
+            className="mt-6 w-full rounded-lg bg-[#f8b400] px-5 py-4 font-black text-[#2b1a00] shadow-sm transition-all hover:bg-[#ffd24a] active:scale-95 disabled:opacity-60"
+          >
+            {loading ? 'Сохранение...' : 'Сохранить данные'}
+          </button>
+        </form>
+      </div>
+    </div>
+  )
+}
+
+export default BeehiveDetails

@@ -37,50 +37,65 @@ export default function TemporaryDrawer() {
       <button
         type="button"
         onClick={() => setOpen(true)}
-        className="p-3 text-black"
+        className="p-3 text-black hover:scale-105 active:scale-95 transition-transform"
         aria-label="Открыть меню"
       >
-        <Menu />
+        <Menu className="w-7 h-7" />
       </button>
 
       {open && (
         <div
-          className="fixed inset-0 z-[1000] bg-black/45 backdrop-blur-sm"
+          className="menu-overlay fixed inset-0 z-[1000] min-h-screen bg-[#16120b]/90 backdrop-blur-md"
           onClick={closeDrawer}
         >
           <nav
-            className="absolute inset-y-0 left-0 w-[82vw] max-w-sm bg-black/70 text-[#eaebb2] shadow-2xl p-6 flex flex-col justify-center"
-            onClick={(event) => event.stopPropagation()}
+            className="menu-panel relative min-h-screen w-full px-6 py-8 sm:px-10 flex items-center justify-center overflow-y-auto"
+            onClick={closeDrawer}
             aria-label="Главное меню"
           >
             <button
               type="button"
-              onClick={closeDrawer}
-              className="absolute top-6 right-6 p-1 text-[#eaebb2] hover:text-white transition-colors"
+              onClick={(event) => {
+                event.stopPropagation()
+                closeDrawer()
+              }}
+              className="menu-close fixed top-5 right-5 sm:top-8 sm:right-8 p-3 text-yellow-100 hover:text-white hover:scale-105 active:scale-95 transition-all"
               aria-label="Закрыть меню"
             >
-              <XIcon className="w-6 h-6" />
+              <XIcon className="w-8 h-8" />
             </button>
 
-            <div className="flex flex-col gap-3">
-              {menuItems.map((item) => (
-                <button
-                  key={item.label}
-                  type="button"
-                  onClick={() => handleNavigate(item.path)}
-                  className="text-left text-2xl md:text-3xl font-semibold hover:text-white transition-colors"
-                >
-                  {item.label}
-                </button>
-              ))}
+            <div className="w-full max-w-5xl text-center">
+              <p className="menu-kicker mb-6 text-sm sm:text-base font-bold uppercase text-yellow-300 tracking-[0.35em]">
+                BeeGarden
+              </p>
 
-              <button
-                type="button"
-                onClick={handleLogout}
-                className="text-left text-2xl md:text-3xl font-semibold text-red-300 hover:text-red-200 transition-colors mt-3"
-              >
-                Выйти
-              </button>
+              <div className="flex flex-col items-center gap-2 sm:gap-3">
+                {menuItems.map((item) => (
+                  <button
+                    key={item.label}
+                    type="button"
+                    onClick={(event) => {
+                      event.stopPropagation()
+                      handleNavigate(item.path)
+                    }}
+                    className="menu-item font-['Tenor_Sans'] text-3xl sm:text-5xl lg:text-6xl text-[#fff3b0] hover:text-white drop-shadow-[0_3px_0_rgba(0,0,0,0.35)] transition-colors"
+                  >
+                    {item.label}
+                  </button>
+                ))}
+
+                <button
+                  type="button"
+                  onClick={(event) => {
+                    event.stopPropagation()
+                    handleLogout()
+                  }}
+                  className="menu-item mt-6 font-['Tenor_Sans'] text-3xl sm:text-5xl lg:text-6xl text-red-300 hover:text-red-100 drop-shadow-[0_3px_0_rgba(0,0,0,0.35)] transition-colors"
+                >
+                  Выйти
+                </button>
+              </div>
             </div>
           </nav>
         </div>

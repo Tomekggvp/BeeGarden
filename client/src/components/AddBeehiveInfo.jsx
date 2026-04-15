@@ -1,70 +1,61 @@
-import React from 'react'
 import { XIcon } from 'lucide-react'
-const AddBeehiveInfo = ({ isOpen, onClose, onConfirm, beehiveNum, setBeehiveNum, isSaving = false }) => {
 
-    if(!isOpen) return null;
+const AddBeehiveInfo = ({ isOpen, onClose, onConfirm, beehiveNum, setBeehiveNum, isSaving = false }) => {
+  if (!isOpen) return null
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-
-      <div 
-        className="absolute inset-0 bg-black/40 backdrop-blur-sm transition-opacity" 
-        onClick={onClose} 
+    <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4">
+      <div
+        className="absolute inset-0 bg-[#111827]/35 backdrop-blur-sm"
+        onClick={onClose}
       />
 
-      <div className="relative bg-white rounded-3xl shadow-2xl w-full max-w-md overflow-hidden transform transition-all animate-in zoom-in duration-200">
+      <div className="relative w-full max-w-md rounded-lg border border-[#f1d88a] bg-[#fffdf7] p-6 shadow-[0_24px_70px_rgba(93,58,0,0.18)]">
+        <button
+          type="button"
+          onClick={onClose}
+          className="absolute right-4 top-4 rounded-lg p-2 text-[#9a5a00] transition-colors hover:bg-[#fff4cc] hover:text-[#2f2100]"
+          aria-label="Закрыть"
+        >
+          <XIcon size={22} />
+        </button>
 
-        <div className="bg-linear-to-r from-[#e8e805] to-[#f7c223] p-6 flex justify-between items-center">
-          <h3 className="text-xl font-bold text-black flex items-center gap-2">
-            🐝 Введите номер улея
-          </h3>
-          <button onClick={onClose} className="text-black/70 hover:text-black transition-colors">
-            <XIcon size={24} />
-          </button>
+        <p className="mb-2 text-xs font-black uppercase tracking-[0.24em] text-[#9a5a00]">
+          Новый улей
+        </p>
+        <h3 className="font-['Tenor_Sans'] text-4xl leading-none text-[#2f2100]">
+          Номер улья
+        </h3>
+
+        <div className="mt-6">
+          <label className="mb-2 block text-sm font-bold text-[#7a5a1a]">
+            Введите номер
+          </label>
+          <input
+            type="text"
+            value={beehiveNum}
+            onChange={(event) => setBeehiveNum(event.target.value)}
+            className="w-full rounded-lg border-2 border-[#f1d88a] bg-white px-4 py-4 text-2xl font-black text-[#2f2100] outline-none transition-all focus:border-[#f8b400] focus:ring-4 focus:ring-[#f8b400]/20"
+            autoFocus
+          />
         </div>
 
-        <div className="p-6 bg-gray-50 flex gap-0 justify-end">
-
-
-            <div className="flex flex-col gap-4">
-                <label className="text-sm font-bold text-gray-700 ml-1">
-                Номер улея 
-                </label>
-    
-        <div className="relative">
-            <input 
-                type="text"
-                value={beehiveNum}
-                onChange={(e) => setBeehiveNum(e.target.value)}
-                placeholder=""
-                className="w-full px-4 py-3 rounded-xl border-2 border-gray-100 outline-none transition-all
-                        focus:border-[#f7c223] focus:ring-4 focus:ring-[#f7c223]/20 bg-gray-50 text-gray-800"
-                autoFocus
-            />
-        
-
-         </div>
-
-             </div>
-
-          <button 
-            onClick={onClose}
-            className="px-4 py-2 mt-30 text-gray-500 hover:text-gray-700 font-medium transition-colors"
-          >
-
-            Отмена
-
-          </button>
-
+        <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:justify-end">
           <button
+            type="button"
+            onClick={onClose}
+            className="rounded-lg border border-[#f1d88a] px-5 py-3 font-bold text-[#7a5a1a] transition-colors hover:bg-[#fff4cc]"
+          >
+            Отмена
+          </button>
+          <button
+            type="button"
             onClick={onConfirm}
             disabled={isSaving}
-            className="px-6 py-2 mt-30 bg-[#f7c223] hover:bg-[#e8e805] text-black font-bold rounded-xl shadow-md active:scale-95 transition-all disabled:opacity-60"
+            className="rounded-lg bg-[#f8b400] px-5 py-3 font-black text-[#2b1a00] shadow-sm transition-all hover:bg-[#ffd24a] active:scale-95 disabled:opacity-60"
           >
             {isSaving ? 'Сохранение...' : 'Подтвердить'}
-
           </button>
-          
         </div>
       </div>
     </div>
