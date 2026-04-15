@@ -45,14 +45,14 @@ const TaskModal = ({ isOpen, onClose, hiveId, session }) => {
   if (!isOpen) return null
 
   return (
-    <div className="fixed inset-0 z-[10000] flex items-center justify-center p-4">
+    <div className="fixed inset-0 z-[10000] flex items-center justify-center overflow-y-auto p-4">
       <div
         className="absolute inset-0 bg-[#111827]/35 backdrop-blur-sm"
         onClick={onClose}
       />
 
       <div
-        className="relative w-full max-w-md rounded-lg border border-[#f1d88a] bg-[#fffdf7] p-6 shadow-[0_24px_70px_rgba(93,58,0,0.18)]"
+        className="relative w-full max-w-md -translate-y-20 rounded-lg border border-[#f1d88a] bg-[#fffdf7] p-6 shadow-[0_24px_70px_rgba(93,58,0,0.18)] sm:translate-y-0"
         onClick={(event) => event.stopPropagation()}
       >
         <button
