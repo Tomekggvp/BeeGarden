@@ -59,6 +59,43 @@ input::-webkit-inner-spin-button {
   isolation: isolate;
 }
 
+.leaf-corners {
+  filter: drop-shadow(0 6px 9px rgba(33, 82, 24, 0.18));
+}
+
+.tree-leaf {
+  opacity: 0.76;
+  stroke: rgba(19, 90, 34, 0.66);
+  animation: treeLeafSway 7.2s ease-in-out infinite;
+  animation-delay: var(--leaf-delay);
+  filter: drop-shadow(0 2px 2px rgba(24, 92, 28, 0.2));
+  transform-origin: center;
+}
+
+.loading-bee-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+}
+
+.loading-bee-stage {
+  position: relative;
+  display: grid;
+  height: 76px;
+  width: 76px;
+  place-items: center;
+}
+
+.loading-bee-icon {
+  height: 58px;
+  width: 58px;
+  object-fit: contain;
+  filter: drop-shadow(0 4px 5px rgba(85, 50, 0, 0.22));
+  animation: loadingBeeSpin 3s linear infinite;
+}
+
 .apiary-grid {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -83,6 +120,25 @@ input::-webkit-inner-spin-button {
 @media (min-width: 768px) {
   .apiary-grid {
     grid-template-columns: repeat(auto-fill, minmax(148px, 156px));
+  }
+}
+
+@keyframes treeLeafSway {
+  0%,
+  100% {
+    scale: 1;
+    translate: 0 0;
+  }
+
+  50% {
+    scale: 1.018;
+    translate: 0 1px;
+  }
+}
+
+@keyframes loadingBeeSpin {
+  to {
+    transform: rotate(360deg);
   }
 }
 
@@ -151,5 +207,13 @@ input::-webkit-inner-spin-button {
     animation: none;
     opacity: 1;
     transform: none;
+  }
+
+  .tree-leaf {
+    animation: none;
+  }
+
+  .loading-bee-icon {
+    animation: none;
   }
 }

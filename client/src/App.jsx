@@ -6,6 +6,7 @@ import api from './api/axios'
 import TemporaryDrawer from './componentsMUI/TemporaryDrawer'
 import Home from './pages/Home'
 import AuthForm from './components/AuthForm'
+import LeafyCorners from './components/LeafyCorners'
 
 const Calendar = lazy(() => import('./pages/Calendar'))
 const ChecksPerformed = lazy(() => import('./pages/ChecksPerformed'))
@@ -47,15 +48,24 @@ const writeCachedHives = (userId, hives) => {
   }
 }
 
+const LoadingBee = ({ label }) => (
+  <div className="loading-bee-wrap" role="status" aria-live="polite">
+    <div className="loading-bee-stage">
+      <img className="loading-bee-icon" src="/bee.png" alt="" />
+    </div>
+    <p className="mt-5 text-base font-black text-[#7a4a00]">{label}</p>
+  </div>
+)
+
 const LoadingScreen = () => (
-  <div className="h-screen flex items-center justify-center font-bold text-yellow-700 bg-yellow-50">
-    Загрузка пасеки...
+  <div className="flex h-screen items-center justify-center">
+    <LoadingBee label="Загрузка пасеки..." />
   </div>
 )
 
 const PageFallback = () => (
-  <div className="min-h-screen flex items-center justify-center font-bold text-yellow-900">
-    Загрузка...
+  <div className="flex min-h-screen items-center justify-center">
+    <LoadingBee label="Загрузка..." />
   </div>
 )
 
@@ -141,36 +151,58 @@ function App() {
     })
   }, [session?.user?.id])
 
-  if (loading) return <LoadingScreen />
-  if (!session) return <AuthForm />
+  if (loading) {
+    return (
+      <>
+        <LeafyCorners />
+        <div className="relative z-10">
+          <LoadingScreen />
+        </div>
+      </>
+    )
+  }
+
+  if (!session) {
+    return (
+      <>
+        <LeafyCorners />
+        <div className="relative z-10">
+          <AuthForm />
+        </div>
+      </>
+    )
+  }
 
   return (
     <>
+      <LeafyCorners />
       {!isAdminRoute && <TemporaryDrawer />}
 
-      <Suspense fallback={<PageFallback />}>
-        <Routes>
-          <Route
-            path="/"
-            element={(
-              <Home
-                session={session}
-                hives={hives}
-                hivesLoading={hivesLoading}
-                onHivesChange={updateHives}
-              />
-            )}
-          />
-          <Route path="/Tasks" element={<Tasks session={session} hives={hives} />} />
-          <Route path="/BeeColonyGraphics" element={<BeeColonyGraphics session={session} />} />
-          <Route path="/Calendar" element={<Calendar session={session} />} />
-          <Route path="/ChecksPerformed" element={<ChecksPerformed session={session} />} />
-          <Route path="/Location" element={<Location session={session} />} />
-          <Route path="/Notes" element={<Notes session={session} />} />
-          <Route path="/Treatment" element={<Treatment session={session} />} />
-          <Route path="/VetControl" element={<VetControl session={session} />} />
-        </Routes>
-      </Suspense>
+      <div className="relative z-10">
+        <Suspense fallback={<PageFallback />}>
+          <Routes>
+            <Route
+              path="/"
+              element={(
+                <Home
+                  session={session}
+                  hives={hives}
+                  hivesLoading={hivesLoading}
+                  onHivesChange={updateHives}
+                />
+              )}
+            />
+            <Route path="/Tasks" element={<Tasks session={session} hives={hives} />} />
+            <Route path="/BeeColonyGraphics" element={<BeeColonyGraphics session={session} />} />
+            <Route path="/Calendar" element={<Calendar session={session} />} />
+            <Route path="/ChecksPerformed" element={<ChecksPerformed session={session} />} />
+            <Route path="/Location" element={<Location session={session} />} />
+            <Route path="/Notes" element={<Notes session={session} />} />
+            <Route path="/Treatment" element={<Treatment session={session} />} />
+            <Route path="/VetControl" element={<VetControl session={session} />} />
+          </Routes>
+        </Suspense>
+      </div>
     </>
   )
 }

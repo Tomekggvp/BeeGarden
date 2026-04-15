@@ -33,11 +33,11 @@ export default function TemporaryDrawer() {
   }
 
   return (
-    <div>
+    <div className="relative z-20">
       <button
         type="button"
         onClick={() => setOpen(true)}
-        className="p-3 text-black hover:scale-105 active:scale-95 transition-transform"
+        className="relative z-20 p-3 text-black hover:scale-105 active:scale-95 transition-transform"
         aria-label="Открыть меню"
       >
         <Menu className="w-7 h-7" />
