@@ -1,95 +1,90 @@
-import Box from '@mui/material/Box';
-import Drawer from '@mui/material/Drawer';
-import Button from '@mui/material/Button';
-import List from '@mui/material/List';
-import ListItem from '@mui/material/ListItem';
-import ListItemButton from '@mui/material/ListItemButton';
-import ListItemText from '@mui/material/ListItemText';
-import { XIcon, Menu } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
-import React, { useState } from 'react';
-import { supabase } from '../services/supabaseClient'; // 
+import { useState } from 'react'
+import { XIcon, Menu } from 'lucide-react'
+import { useNavigate } from 'react-router-dom'
+import { supabase } from '../services/supabaseClient'
+
+const menuItems = [
+  { label: 'Список дел', path: 'Tasks' },
+  { label: 'Записи', path: 'Notes' },
+  { label: 'Лечение', path: 'Treatment' },
+  { label: 'Ветеринарный контроль', path: 'VetControl' },
+  { label: 'Пчелосемьи', path: 'BeeColonyGraphics' },
+  { label: 'Проверки', path: 'ChecksPerformed' },
+  { label: 'Календарь', path: 'Calendar' },
+  { label: 'Выбор локации', path: 'Location' },
+  { label: 'Добавить улей', path: '' },
+]
 
 export default function TemporaryDrawer() {
-  const [open, setOpen] = useState(false);
-  const navigate = useNavigate();
+  const [open, setOpen] = useState(false)
+  const navigate = useNavigate()
 
-  const menuItems = [
-    { label: 'Список дел', path: 'Tasks'},
-    { label: 'Записи', path: 'Notes'},
-    { label: 'Лечение', path: 'Treatment'},
-    { label: 'Ветеринарный контроль', path: 'VetControl'},
-    { label: 'Пчелосемьи', path: 'BeeColonyGraphics'},
-    { label: 'Проверки', path: 'ChecksPerformed'},
-    { label: 'Календарь', path: 'Calendar'},
-    { label: 'Выбор локации', path: 'Location'},
-    { label: 'Добавить улей', path: ''},
-  ]
+  const closeDrawer = () => setOpen(false)
 
-  const toggleDrawer = (newOpen) => () => {
-    setOpen(newOpen);
-  };
+  const handleNavigate = (path) => {
+    closeDrawer()
+    navigate(`/${path}`)
+  }
 
   const handleLogout = async () => {
-    await supabase.auth.signOut();
-    setOpen(false);
-    navigate('/');
-  };
-
-  const DrawerList = (
-    <Box sx={{ width: 250 }} role="presentation" onClick={toggleDrawer(false)}>
-      <List>
-        {menuItems.map((item) => (
-          <ListItem key={item.label} disablePadding>
-            <ListItemButton onClick={() => navigate(`/${item.path}`)}>   
-              <ListItemText primary={item.label} />
-            </ListItemButton>
-          </ListItem>
-        ))}
-        
-        <ListItem disablePadding>
-          <ListItemButton onClick={handleLogout}>
-            <ListItemText 
-              primary="Выйти" 
-              sx={{ '& .MuiListItemText-primary': { color: '#f87171' } }} 
-            />
-          </ListItemButton>
-        </ListItem>
-      </List>
-  
-      <XIcon className={`absolute top-6 right-6 w-6 h-6 cursor-pointer`}/>
-    </Box>
-  );
+    await supabase.auth.signOut()
+    closeDrawer()
+    navigate('/')
+  }
 
   return (
     <div>
-      <Button onClick={toggleDrawer(true)}><Menu className='text-black'/></Button>
-      <Drawer open={open} onClose={toggleDrawer(false)} PaperProps={{
-        sx: {
-          backgroundColor: 'transparent',
-          boxShadow: 'none',
-          color: '#eaebb2',
-          height: '100vh', 
-          display: 'flex',
-          alignItems: 'center', 
-          justifyContent: 'center', 
-          left: 0,
-          right: 0,
-          margin: 'auto',
-          fontSize: '100px',
-          '& .MuiListItemText-primary': {
-            fontSize: {
-              xs: '1.5rem',    
-              sm: '1.5rem',   
-              md: '2rem',      
-              lg: '2.5rem',    
-              xl: '2.25rem'    
-            }
-          }
-        }
-      }}>
-        {DrawerList}
-      </Drawer>
+      <button
+        type="button"
+        onClick={() => setOpen(true)}
+        className="p-3 text-black"
+        aria-label="Открыть меню"
+      >
+        <Menu />
+      </button>
+
+      {open && (
+        <div
+          className="fixed inset-0 z-[1000] bg-black/45 backdrop-blur-sm"
+          onClick={closeDrawer}
+        >
+          <nav
+            className="absolute inset-y-0 left-0 w-[82vw] max-w-sm bg-black/70 text-[#eaebb2] shadow-2xl p-6 flex flex-col justify-center"
+            onClick={(event) => event.stopPropagation()}
+            aria-label="Главное меню"
+          >
+            <button
+              type="button"
+              onClick={closeDrawer}
+              className="absolute top-6 right-6 p-1 text-[#eaebb2] hover:text-white transition-colors"
+              aria-label="Закрыть меню"
+            >
+              <XIcon className="w-6 h-6" />
+            </button>
+
+            <div className="flex flex-col gap-3">
+              {menuItems.map((item) => (
+                <button
+                  key={item.label}
+                  type="button"
+                  onClick={() => handleNavigate(item.path)}
+                  className="text-left text-2xl md:text-3xl font-semibold hover:text-white transition-colors"
+                >
+                  {item.label}
+                </button>
+              ))}
+
+              <button
+                type="button"
+                onClick={handleLogout}
+                className="text-left text-2xl md:text-3xl font-semibold text-red-300 hover:text-red-200 transition-colors mt-3"
+              >
+                Выйти
+              </button>
+            </div>
+          </nav>
+        </div>
+      )}
     </div>
-  );
+  )
 }

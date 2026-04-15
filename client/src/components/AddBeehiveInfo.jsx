@@ -1,6 +1,6 @@
 import React from 'react'
 import { XIcon } from 'lucide-react'
-const AddBeehiveInfo = ({ isOpen, onClose, onConfirm,beehiveNum, setBeehiveNum}) => {
+const AddBeehiveInfo = ({ isOpen, onClose, onConfirm, beehiveNum, setBeehiveNum, isSaving = false }) => {
 
     if(!isOpen) return null;
 
@@ -56,11 +56,12 @@ const AddBeehiveInfo = ({ isOpen, onClose, onConfirm,beehiveNum, setBeehiveNum})
 
           </button>
 
-          <button 
+          <button
             onClick={onConfirm}
-            className="px-6 py-2 mt-30 bg-[#f7c223] hover:bg-[#e8e805] text-black font-bold rounded-xl shadow-md active:scale-95 transition-all"
+            disabled={isSaving}
+            className="px-6 py-2 mt-30 bg-[#f7c223] hover:bg-[#e8e805] text-black font-bold rounded-xl shadow-md active:scale-95 transition-all disabled:opacity-60"
           >
-            Подтвердить
+            {isSaving ? 'Сохранение...' : 'Подтвердить'}
 
           </button>
           

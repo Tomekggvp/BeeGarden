@@ -1,16 +1,20 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { AlertTriangle, X } from 'lucide-react';
 
 const ConfirmDeleteModal = ({ isOpen, onClose, onConfirm, hiveId }) => {
   const [input, setInput] = useState('');
 
-  useEffect(() => {
-    if (!isOpen) setInput('');
-  }, [isOpen]);
-
   if (!isOpen) return null;
 
   const isMatched = input === String(hiveId);
+  const handleClose = () => {
+    setInput('');
+    onClose();
+  };
+  const handleConfirm = () => {
+    setInput('');
+    onConfirm();
+  };
 
   return (
     <div className="fixed inset-0 z-[10000] flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-in fade-in duration-200">
@@ -18,7 +22,7 @@ const ConfirmDeleteModal = ({ isOpen, onClose, onConfirm, hiveId }) => {
         className="bg-white rounded-3xl shadow-2xl w-full max-w-sm p-6 relative animate-in zoom-in duration-200"
         onClick={(e) => e.stopPropagation()}
       >
-        <button onClick={onClose} className="absolute top-4 right-4 text-gray-400 hover:text-gray-600">
+        <button onClick={handleClose} className="absolute top-4 right-4 text-gray-400 hover:text-gray-600">
           <X size={20} />
         </button>
 
@@ -48,14 +52,14 @@ const ConfirmDeleteModal = ({ isOpen, onClose, onConfirm, hiveId }) => {
 
           <div className="flex gap-3 w-full">
             <button
-              onClick={onClose}
+              onClick={handleClose}
               className="flex-1 px-4 py-3 bg-gray-100 hover:bg-gray-200 text-gray-600 font-bold rounded-xl transition-all"
             >
               Отмена
             </button>
             <button
               disabled={!isMatched}
-              onClick={onConfirm}
+              onClick={handleConfirm}
               className="flex-1 px-4 py-3 bg-red-500 hover:bg-red-600 disabled:opacity-30 disabled:cursor-not-allowed text-white font-bold rounded-xl shadow-lg shadow-red-200 transition-all active:scale-95"
             >
               Удалить
