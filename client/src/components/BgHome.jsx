@@ -1,16 +1,20 @@
 import { XIcon } from 'lucide-react'
+import { assets } from '../assets/assets'
 import Beehive from './Beehive'
 
 const BgHome = ({ component = [], removeComponent, onOpenDetails, onAddHive, showDelete = false }) => {
   const isEmpty = component.length === 0
 
   return (
-    <div className="apiary-shell relative mx-auto min-h-[430px] w-full overflow-hidden rounded-lg border border-[#f0b35a] bg-[#fff0c8] p-4 shadow-sm sm:p-6">
-      <div className="apiary-topline absolute inset-x-0 top-0 h-1"></div>
-
+    <div
+      className="apiary-shell relative mx-auto min-h-[430px] w-full overflow-hidden rounded-lg bg-cover bg-center p-4 sm:p-6"
+      style={{
+        backgroundImage: `linear-gradient(135deg, rgba(255, 238, 145, 0.24), rgba(255, 154, 31, 0.2)), url(${assets.gras})`,
+      }}
+    >
       {isEmpty ? (
         <div className="relative z-10 flex min-h-[360px] items-center justify-center text-center">
-          <div className="max-w-md">
+          <div className="max-w-md rounded-lg border border-[#f1d88a] bg-[#fffaf0]/90 p-6 shadow-sm backdrop-blur">
             <p className="mb-3 font-['Tenor_Sans'] text-4xl text-[#2f2100]">
               Пасека пустая
             </p>

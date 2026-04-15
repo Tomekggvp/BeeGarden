@@ -11,11 +11,9 @@
 body{
     min-height: 100vh;
     background:
-      linear-gradient(90deg, rgba(248, 180, 0, 0.18) 0 20%, transparent 20% 100%),
-      linear-gradient(180deg, rgba(255, 210, 74, 0.42) 0 160px, transparent 160px),
-      repeating-linear-gradient(0deg, rgba(154, 90, 0, 0.055) 0 1px, transparent 1px 42px),
-      repeating-linear-gradient(90deg, rgba(154, 90, 0, 0.055) 0 1px, transparent 1px 42px),
-      #e8ffd8;
+      linear-gradient(90deg, rgba(255, 168, 0, 0.28) 0 20%, transparent 20% 100%),
+      linear-gradient(180deg, rgba(255, 217, 74, 0.72) 0 160px, transparent 160px),
+      #fff1ad;
 }
 
 #root {
@@ -64,10 +62,6 @@ input::-webkit-inner-spin-button {
   isolation: isolate;
 }
 
-.apiary-topline {
-  background: linear-gradient(90deg, #fff06a 0%, #f8b400 48%, #ffd24a 100%);
-}
-
 .apiary-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(118px, 1fr));
@@ -75,11 +69,6 @@ input::-webkit-inner-spin-button {
   gap: clamp(12px, 2vw, 22px);
   min-height: 380px;
   padding: clamp(10px, 2.4vw, 28px);
-  background:
-    linear-gradient(90deg, rgba(224, 120, 0, 0.16) 0 1px, transparent 1px),
-    linear-gradient(0deg, rgba(224, 120, 0, 0.16) 0 1px, transparent 1px),
-    linear-gradient(135deg, rgba(255, 168, 54, 0.22), rgba(255, 236, 177, 0.38));
-  background-size: 44px 44px;
 }
 
 .hive-button {
