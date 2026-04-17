@@ -7,6 +7,7 @@ import TemporaryDrawer from './componentsMUI/TemporaryDrawer'
 import Home from './pages/Home'
 import AuthForm from './components/AuthForm'
 import LeafyCorners from './components/LeafyCorners'
+import ReminderScheduler from './components/ReminderScheduler'
 
 const Calendar = lazy(() => import('./pages/Calendar'))
 const ChecksPerformed = lazy(() => import('./pages/ChecksPerformed'))
@@ -176,6 +177,7 @@ function App() {
   return (
     <>
       <LeafyCorners />
+      <ReminderScheduler session={session} />
       {!isAdminRoute && <TemporaryDrawer />}
 
       <div className="relative z-10">

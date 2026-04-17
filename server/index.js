@@ -1,10 +1,24 @@
 import express from 'express'
 import cors from 'cors'
+import webpush from 'web-push'
 import { supabase } from './db.js'
 
 const app = express()
 const hivesCache = new Map()
 const HIVES_CACHE_TTL_MS = 30_000
+const REMINDER_CHECK_INTERVAL_MS = 30_000
+const vapidPublicKey = process.env.VAPID_PUBLIC_KEY
+const vapidPrivateKey = process.env.VAPID_PRIVATE_KEY
+const vapidSubject = process.env.VAPID_SUBJECT || 'mailto:beegarden@example.com'
+
+const pushEnabled = Boolean(vapidPublicKey && vapidPrivateKey)
+let remindersCheckInProgress = false
+
+if (pushEnabled) {
+  webpush.setVapidDetails(vapidSubject, vapidPublicKey, vapidPrivateKey)
+} else {
+  console.warn('Push notifications disabled: VAPID_PUBLIC_KEY and VAPID_PRIVATE_KEY are required')
+}
 
 app.disable('x-powered-by')
 app.use(cors())
@@ -12,6 +26,7 @@ app.use(express.json())
 
 const getUserId = (value) => String(value || '').trim()
 const getHiveNumber = (value) => String(value || '').trim()
+const getSubscriptionEndpoint = (subscription) => String(subscription?.endpoint || '').trim()
 
 const getCachedHives = (userId) => {
   const cached = hivesCache.get(userId)
@@ -38,6 +53,60 @@ const clearCachedHives = (userId) => {
 
 app.get('/api/health', (_req, res) => {
   res.json({ ok: true })
+})
+
+app.get('/api/push/vapid-public-key', (_req, res) => {
+  if (!pushEnabled) {
+    return res.status(503).json({ error: 'Push notifications are not configured' })
+  }
+
+  res.json({ publicKey: vapidPublicKey })
+})
+
+app.post('/api/push/subscribe', async (req, res) => {
+  if (!pushEnabled) {
+    return res.status(503).json({ error: 'Push notifications are not configured' })
+  }
+
+  const userId = getUserId(req.body.user_id)
+  const subscription = req.body.subscription
+  const endpoint = getSubscriptionEndpoint(subscription)
+
+  if (!userId || !endpoint || !subscription?.keys?.p256dh || !subscription?.keys?.auth) {
+    return res.status(400).json({ error: 'user_id and a valid push subscription are required' })
+  }
+
+  const { error } = await supabase
+    .from('push_subscriptions')
+    .upsert({
+      user_id: userId,
+      endpoint,
+      subscription,
+      updated_at: new Date().toISOString(),
+    }, { onConflict: 'endpoint' })
+
+  if (error) return res.status(400).json({ error: error.message })
+
+  res.json({ success: true })
+})
+
+app.delete('/api/push/subscribe', async (req, res) => {
+  const userId = getUserId(req.body.user_id)
+  const endpoint = getSubscriptionEndpoint(req.body.subscription)
+
+  if (!userId || !endpoint) {
+    return res.status(400).json({ error: 'user_id and subscription endpoint are required' })
+  }
+
+  const { error } = await supabase
+    .from('push_subscriptions')
+    .delete()
+    .eq('user_id', userId)
+    .eq('endpoint', endpoint)
+
+  if (error) return res.status(400).json({ error: error.message })
+
+  res.json({ success: true })
 })
 
 // --- СПИСОК УЛЬЕВ ---
@@ -153,5 +222,105 @@ app.post('/api/beehive', async (req, res) => {
   res.json({ success: true })
 })
 
+const deleteExpiredSubscription = async (endpoint) => {
+  const { error } = await supabase
+    .from('push_subscriptions')
+    .delete()
+    .eq('endpoint', endpoint)
+
+  if (error) {
+    console.error('Push subscription cleanup error:', error.message)
+  }
+}
+
+const sendReminderPushes = async (task, subscriptions) => {
+  const payload = JSON.stringify({
+    title: `BeeGarden: улей №${task.hive_id}`,
+    body: task.task_text,
+    icon: '/bee.png',
+    tag: `beegarden-task-${task.id}`,
+    url: '/Tasks',
+  })
+
+  const results = await Promise.allSettled(
+    subscriptions.map((item) => webpush.sendNotification(item.subscription, payload))
+  )
+
+  await Promise.all(results.map((result, index) => {
+    if (result.status !== 'rejected') return Promise.resolve()
+
+    const statusCode = result.reason?.statusCode
+    if (statusCode === 404 || statusCode === 410) {
+      return deleteExpiredSubscription(subscriptions[index].endpoint)
+    }
+
+    console.error('Push notification error:', result.reason?.message || result.reason)
+    return Promise.resolve()
+  }))
+
+  return results.some((result) => result.status === 'fulfilled')
+}
+
+const checkDueReminders = async () => {
+  if (!pushEnabled) return
+  if (remindersCheckInProgress) return
+
+  remindersCheckInProgress = true
+
+  const now = new Date().toISOString()
+  const { data: dueTasks, error: tasksError } = await supabase
+    .from('tasks')
+    .select('id,user_id,hive_id,task_text,reminder_at')
+    .eq('reminder_enabled', true)
+    .is('reminder_notified_at', null)
+    .lte('reminder_at', now)
+    .limit(25)
+
+  if (tasksError) {
+    console.error('Reminder query error:', tasksError.message)
+    remindersCheckInProgress = false
+    return
+  }
+
+  try {
+    for (const task of dueTasks || []) {
+      const { data: subscriptions, error: subscriptionsError } = await supabase
+        .from('push_subscriptions')
+        .select('endpoint,subscription')
+        .eq('user_id', String(task.user_id))
+
+      if (subscriptionsError) {
+        console.error('Push subscriptions query error:', subscriptionsError.message)
+        continue
+      }
+
+      if (!subscriptions?.length) continue
+
+      const sent = await sendReminderPushes(task, subscriptions)
+      if (!sent) continue
+
+      const { error: updateError } = await supabase
+        .from('tasks')
+        .update({ reminder_notified_at: now })
+        .eq('id', task.id)
+        .eq('user_id', task.user_id)
+        .is('reminder_notified_at', null)
+
+      if (updateError) {
+        console.error('Reminder mark sent error:', updateError.message)
+      }
+    }
+  } finally {
+    remindersCheckInProgress = false
+  }
+}
+
 const PORT = process.env.PORT || 10000
-app.listen(PORT, () => console.log(`Server on port ${PORT}`))
+app.listen(PORT, () => {
+  console.log(`Server on port ${PORT}`)
+
+  if (pushEnabled) {
+    checkDueReminders()
+    setInterval(checkDueReminders, REMINDER_CHECK_INTERVAL_MS)
+  }
+})
