@@ -209,18 +209,18 @@ const TaskModal = ({ isOpen, onClose, hiveId, session }) => {
   return (
     <div className="fixed inset-0 z-[10000] flex items-center justify-center overflow-y-auto p-4">
       <div
-        className="absolute inset-0 bg-[#111827]/35 backdrop-blur-sm"
+        className="absolute inset-0 z-0 bg-[#111827]/35 backdrop-blur-sm"
         onClick={onClose}
       />
 
       <div
-        className="relative w-full max-w-md -translate-y-20 rounded-lg border border-[#f1d88a] bg-[#fffdf7] p-6 shadow-[0_24px_70px_rgba(93,58,0,0.18)] sm:translate-y-0"
+        className="relative z-10 my-4 flex max-h-[calc(100vh-2rem)] w-full max-w-md flex-col rounded-lg border border-[#f1d88a] bg-[#fffdf7] p-6 shadow-[0_24px_70px_rgba(93,58,0,0.18)]"
         onClick={(event) => event.stopPropagation()}
       >
         <button
           type="button"
           onClick={onClose}
-          className="absolute right-4 top-4 flex h-8 w-8 items-center justify-center rounded-full text-[#9a5a00] transition-colors hover:bg-[#fff4cc] hover:text-[#2f2100]"
+          className="absolute right-4 top-4 z-20 flex h-8 w-8 items-center justify-center rounded-full text-[#9a5a00] transition-colors hover:bg-[#fff4cc] hover:text-[#2f2100]"
           aria-label="Закрыть"
         >
           <X size={18} />
@@ -306,7 +306,7 @@ const TaskModal = ({ isOpen, onClose, hiveId, session }) => {
           </div>
         </div>
 
-        <div className="mt-5 max-h-64 space-y-2 overflow-y-auto pr-1">
+        <div className="mt-5 space-y-2 overflow-y-auto pr-1">
           {tasks.length === 0 ? (
             <p className="rounded-lg border border-dashed border-[#f1d88a] bg-white/70 px-4 py-5 text-center text-sm font-semibold text-[#7a5a1a]">
               Для этого улья пока нет задач.
