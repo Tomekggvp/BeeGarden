@@ -10,6 +10,7 @@ const REMINDER_CHECK_INTERVAL_MS = 30_000
 const vapidPublicKey = process.env.VAPID_PUBLIC_KEY
 const vapidPrivateKey = process.env.VAPID_PRIVATE_KEY
 const vapidSubject = process.env.VAPID_SUBJECT || 'mailto:beegarden@example.com'
+const reminderCronSecret = String(process.env.REMINDER_CRON_SECRET || '').trim()
 
 const pushEnabled = Boolean(vapidPublicKey && vapidPrivateKey)
 let remindersCheckInProgress = false
@@ -88,6 +89,20 @@ app.post('/api/push/subscribe', async (req, res) => {
   if (error) return res.status(400).json({ error: error.message })
 
   res.json({ success: true })
+})
+
+app.post('/api/reminders/run', async (req, res) => {
+  if (!reminderCronSecret) {
+    return res.status(503).json({ error: 'REMINDER_CRON_SECRET is not configured' })
+  }
+
+  const providedSecret = String(req.headers['x-reminder-secret'] || '').trim()
+  if (providedSecret !== reminderCronSecret) {
+    return res.status(401).json({ error: 'Invalid reminder secret' })
+  }
+
+  const result = await checkDueReminders()
+  res.json(result)
 })
 
 app.delete('/api/push/subscribe', async (req, res) => {
@@ -262,8 +277,13 @@ const sendReminderPushes = async (task, subscriptions) => {
 }
 
 const checkDueReminders = async () => {
-  if (!pushEnabled) return
-  if (remindersCheckInProgress) return
+  if (!pushEnabled) {
+    return { status: 'disabled', matched: 0, sent: 0 }
+  }
+
+  if (remindersCheckInProgress) {
+    return { status: 'busy', matched: 0, sent: 0 }
+  }
 
   remindersCheckInProgress = true
 
@@ -274,13 +294,16 @@ const checkDueReminders = async () => {
     .eq('reminder_enabled', true)
     .is('reminder_notified_at', null)
     .lte('reminder_at', now)
+    .order('reminder_at', { ascending: true })
     .limit(25)
 
   if (tasksError) {
     console.error('Reminder query error:', tasksError.message)
     remindersCheckInProgress = false
-    return
+    return { status: 'error', matched: 0, sent: 0, error: tasksError.message }
   }
+
+  let sentCount = 0
 
   try {
     for (const task of dueTasks || []) {
@@ -299,6 +322,8 @@ const checkDueReminders = async () => {
       const sent = await sendReminderPushes(task, subscriptions)
       if (!sent) continue
 
+      sentCount += 1
+
       const { error: updateError } = await supabase
         .from('tasks')
         .update({ reminder_notified_at: now })
@@ -312,6 +337,12 @@ const checkDueReminders = async () => {
     }
   } finally {
     remindersCheckInProgress = false
+  }
+
+  return {
+    status: 'ok',
+    matched: (dueTasks || []).length,
+    sent: sentCount,
   }
 }
 
