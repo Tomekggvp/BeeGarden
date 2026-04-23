@@ -8,7 +8,6 @@ import {
   getNotificationPermission,
   isPushSupported,
   requestNotificationPermission,
-  sendTestPushNotification,
   subscribeUserToPush,
 } from '../lib/pushNotifications'
 import { supabase } from '../services/supabaseClient'
@@ -137,7 +136,6 @@ const TaskModal = ({ isOpen, onClose, hiveId, session }) => {
           return
         }
 
-        await sendTestPushNotification(session.user.id)
       } catch (error) {
         console.error('Push subscribe error:', error)
         setErrorMessage('Не удалось включить push-уведомления. Проверьте настройки или хостинг.')
