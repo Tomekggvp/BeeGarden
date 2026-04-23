@@ -1,11 +1,13 @@
-import axios from 'axios';
+import axios from 'axios'
+
+const fallbackApiBaseUrl = 'https://beegarden.onrender.com'
 
 const api = axios.create({
-  baseURL: 'https://beegarden.onrender.com', // http://localhost:5000  https://beegarden.onrender.com
-  timeout: 30000, 
+  baseURL: import.meta.env.VITE_API_BASE_URL || fallbackApiBaseUrl,
+  timeout: 30000,
   headers: {
-    'Content-Type': 'application/json'
-  }
-});
+    'Content-Type': 'application/json',
+  },
+})
 
-export default api;
+export default api

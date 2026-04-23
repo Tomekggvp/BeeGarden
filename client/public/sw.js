@@ -29,10 +29,17 @@ self.addEventListener('notificationclick', (event) => {
   event.notification.close()
 
   const targetUrl = new URL(event.notification.data?.url || '/', self.location.origin).href
+  const targetPathname = new URL(targetUrl).pathname
 
   event.waitUntil(
     self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then((clients) => {
-      const existingClient = clients.find((client) => client.url === targetUrl)
+      const existingClient = clients.find((client) => {
+        try {
+          return new URL(client.url).pathname === targetPathname
+        } catch {
+          return false
+        }
+      })
 
       if (existingClient) {
         return existingClient.focus()

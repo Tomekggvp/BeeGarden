@@ -250,7 +250,7 @@ const deleteExpiredSubscription = async (endpoint) => {
 
 const sendReminderPushes = async (task, subscriptions) => {
   const payload = JSON.stringify({
-    title: `BeeGarden: улей №${task.hive_id}`,
+    title: `BeeGarden: hive #${task.hive_id}`,
     body: task.task_text,
     icon: '/bee.png',
     tag: `beegarden-task-${task.id}`,
@@ -258,7 +258,10 @@ const sendReminderPushes = async (task, subscriptions) => {
   })
 
   const results = await Promise.allSettled(
-    subscriptions.map((item) => webpush.sendNotification(item.subscription, payload))
+    subscriptions.map((item) => webpush.sendNotification(item.subscription, payload, {
+      TTL: 60,
+      urgency: 'high',
+    }))
   )
 
   await Promise.all(results.map((result, index) => {

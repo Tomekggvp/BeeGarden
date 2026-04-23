@@ -4,6 +4,12 @@ import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs'
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider'
 import { MobileDateTimePicker } from '@mui/x-date-pickers/MobileDateTimePicker'
 import { Bell, Plus, Trash2, X } from 'lucide-react'
+import {
+  getNotificationPermission,
+  isPushSupported,
+  requestNotificationPermission,
+  subscribeUserToPush,
+} from '../lib/pushNotifications'
 import { supabase } from '../services/supabaseClient'
 import 'dayjs/locale/ru'
 
@@ -57,14 +63,6 @@ const sortTasks = (tasks = []) =>
     return new Date(firstTask.reminder_at).getTime() - new Date(secondTask.reminder_at).getTime()
   })
 
-const getNotificationPermission = () => {
-  if (typeof window === 'undefined' || !('Notification' in window)) {
-    return 'unsupported'
-  }
-
-  return Notification.permission
-}
-
 const TaskModal = ({ isOpen, onClose, hiveId, session }) => {
   const [tasks, setTasks] = useState([])
   const [text, setText] = useState('')
@@ -98,32 +96,6 @@ const TaskModal = ({ isOpen, onClose, hiveId, session }) => {
     fetchTasks()
   }, [isOpen, hiveId, session?.user?.id])
 
-  const requestNotificationPermission = async () => {
-    if (typeof window === 'undefined' || !('Notification' in window)) {
-      setNotificationPermission('unsupported')
-      return 'unsupported'
-    }
-
-    if (Notification.permission === 'default') {
-      const permission = await Notification.requestPermission()
-      setNotificationPermission(permission)
-
-      if (permission === 'granted') {
-        window.dispatchEvent(new Event('beegarden:notifications-permission-changed'))
-      }
-
-      return permission
-    }
-
-    setNotificationPermission(Notification.permission)
-
-    if (Notification.permission === 'granted') {
-      window.dispatchEvent(new Event('beegarden:notifications-permission-changed'))
-    }
-
-    return Notification.permission
-  }
-
   const handleAdd = async () => {
     const taskText = text.trim()
     if (!taskText || isSaving) return
@@ -143,7 +115,31 @@ const TaskModal = ({ isOpen, onClose, hiveId, session }) => {
     }
 
     if (reminderDate) {
-      await requestNotificationPermission()
+      if (!isPushSupported()) {
+        setErrorMessage('Р­С‚РѕС‚ Р±СЂР°СѓР·РµСЂ РЅРµ РїРѕРґРґРµСЂР¶РёРІР°РµС‚ push-СѓРІРµРґРѕРјР»РµРЅРёСЏ.')
+        return
+      }
+
+      const permission = await requestNotificationPermission()
+      setNotificationPermission(permission)
+
+      if (permission !== 'granted') {
+        setErrorMessage('Р§С‚РѕР±С‹ РЅР°РїРѕРјРёРЅР°РЅРёРµ СЃСЂР°Р±РѕС‚Р°Р»Рѕ, СЂР°Р·СЂРµС€РёС‚Рµ СѓРІРµРґРѕРјР»РµРЅРёСЏ РІ Р±СЂР°СѓР·РµСЂРµ.')
+        return
+      }
+
+      try {
+        const subscribed = await subscribeUserToPush(session.user.id, { forceRefresh: true })
+
+        if (!subscribed) {
+          setErrorMessage('РќРµ СѓРґР°Р»РѕСЃСЊ РІРєР»СЋС‡РёС‚СЊ push-СѓРІРµРґРѕРјР»РµРЅРёСЏ. РџРѕРїСЂРѕР±СѓР№С‚Рµ РµС‰С‘ СЂР°Р·.')
+          return
+        }
+      } catch (error) {
+        console.error('Push subscribe error:', error)
+        setErrorMessage('РќРµ СѓРґР°Р»РѕСЃСЊ РІРєР»СЋС‡РёС‚СЊ push-СѓРІРµРґРѕРјР»РµРЅРёСЏ. РџСЂРѕРІРµСЂСЊС‚Рµ РЅР°СЃС‚СЂРѕР№РєРё РёР»Рё С…РѕСЃС‚РёРЅРі.')
+        return
+      }
     }
 
     setIsSaving(true)
