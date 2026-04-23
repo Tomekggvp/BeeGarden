@@ -117,3 +117,18 @@ export const unsubscribeUserFromPush = async (userId) => {
     console.error('Push unsubscribe browser error:', error)
   }
 }
+
+export const sendTestPushNotification = async (userId) => {
+  if (!userId) return false
+
+  try {
+    await api.post('/api/push/test', {
+      user_id: userId,
+    })
+  } catch (error) {
+    console.warn('Push test skipped:', error?.response?.status || error?.message || error)
+    return false
+  }
+
+  return true
+}

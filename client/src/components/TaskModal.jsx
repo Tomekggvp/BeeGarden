@@ -8,6 +8,7 @@ import {
   getNotificationPermission,
   isPushSupported,
   requestNotificationPermission,
+  sendTestPushNotification,
   subscribeUserToPush,
 } from '../lib/pushNotifications'
 import { supabase } from '../services/supabaseClient'
@@ -116,7 +117,7 @@ const TaskModal = ({ isOpen, onClose, hiveId, session }) => {
 
     if (reminderDate) {
       if (!isPushSupported()) {
-        setErrorMessage('Р­С‚РѕС‚ Р±СЂР°СѓР·РµСЂ РЅРµ РїРѕРґРґРµСЂР¶РёРІР°РµС‚ push-СѓРІРµРґРѕРјР»РµРЅРёСЏ.')
+        setErrorMessage('Этот браузер не поддерживает push-уведомления.')
         return
       }
 
@@ -124,7 +125,7 @@ const TaskModal = ({ isOpen, onClose, hiveId, session }) => {
       setNotificationPermission(permission)
 
       if (permission !== 'granted') {
-        setErrorMessage('Р§С‚РѕР±С‹ РЅР°РїРѕРјРёРЅР°РЅРёРµ СЃСЂР°Р±РѕС‚Р°Р»Рѕ, СЂР°Р·СЂРµС€РёС‚Рµ СѓРІРµРґРѕРјР»РµРЅРёСЏ РІ Р±СЂР°СѓР·РµСЂРµ.')
+        setErrorMessage('Чтобы напоминание сработало, разрешите уведомления в браузере.')
         return
       }
 
@@ -132,12 +133,14 @@ const TaskModal = ({ isOpen, onClose, hiveId, session }) => {
         const subscribed = await subscribeUserToPush(session.user.id, { forceRefresh: true })
 
         if (!subscribed) {
-          setErrorMessage('РќРµ СѓРґР°Р»РѕСЃСЊ РІРєР»СЋС‡РёС‚СЊ push-СѓРІРµРґРѕРјР»РµРЅРёСЏ. РџРѕРїСЂРѕР±СѓР№С‚Рµ РµС‰С‘ СЂР°Р·.')
+          setErrorMessage('Не удалось включить push-уведомления. Попробуйте еще раз.')
           return
         }
+
+        await sendTestPushNotification(session.user.id)
       } catch (error) {
         console.error('Push subscribe error:', error)
-        setErrorMessage('РќРµ СѓРґР°Р»РѕСЃСЊ РІРєР»СЋС‡РёС‚СЊ push-СѓРІРµРґРѕРјР»РµРЅРёСЏ. РџСЂРѕРІРµСЂСЊС‚Рµ РЅР°СЃС‚СЂРѕР№РєРё РёР»Рё С…РѕСЃС‚РёРЅРі.')
+        setErrorMessage('Не удалось включить push-уведомления. Проверьте настройки или хостинг.')
         return
       }
     }

@@ -91,6 +91,44 @@ app.post('/api/push/subscribe', async (req, res) => {
   res.json({ success: true })
 })
 
+app.post('/api/push/test', async (req, res) => {
+  if (!pushEnabled) {
+    return res.status(503).json({ error: 'Push notifications are not configured' })
+  }
+
+  const userId = getUserId(req.body.user_id)
+  if (!userId) {
+    return res.status(400).json({ error: 'user_id is required' })
+  }
+
+  const { data: subscriptions, error: subscriptionsError } = await supabase
+    .from('push_subscriptions')
+    .select('endpoint,subscription')
+    .eq('user_id', userId)
+
+  if (subscriptionsError) {
+    return res.status(500).json({ error: subscriptionsError.message })
+  }
+
+  if (!subscriptions?.length) {
+    return res.status(404).json({ error: 'No active push subscriptions found' })
+  }
+
+  const sent = await sendPushPayload(subscriptions, {
+    title: 'BeeGarden',
+    body: 'Тестовое push-уведомление подключено.',
+    icon: '/bee.png',
+    tag: `beegarden-test-${userId}`,
+    url: '/Tasks',
+  })
+
+  if (!sent) {
+    return res.status(502).json({ error: 'Push test failed' })
+  }
+
+  res.json({ success: true })
+})
+
 app.post('/api/reminders/run', async (req, res) => {
   if (!reminderCronSecret) {
     return res.status(503).json({ error: 'REMINDER_CRON_SECRET is not configured' })
@@ -248,15 +286,8 @@ const deleteExpiredSubscription = async (endpoint) => {
   }
 }
 
-const sendReminderPushes = async (task, subscriptions) => {
-  const payload = JSON.stringify({
-    title: `BeeGarden: hive #${task.hive_id}`,
-    body: task.task_text,
-    icon: '/bee.png',
-    tag: `beegarden-task-${task.id}`,
-    url: '/Tasks',
-  })
-
+const sendPushPayload = async (subscriptions, payloadData) => {
+  const payload = JSON.stringify(payloadData)
   const results = await Promise.allSettled(
     subscriptions.map((item) => webpush.sendNotification(item.subscription, payload, {
       TTL: 60,
@@ -278,6 +309,15 @@ const sendReminderPushes = async (task, subscriptions) => {
 
   return results.some((result) => result.status === 'fulfilled')
 }
+
+const sendReminderPushes = async (task, subscriptions) =>
+  sendPushPayload(subscriptions, {
+    title: `BeeGarden: hive #${task.hive_id}`,
+    body: task.task_text,
+    icon: '/bee.png',
+    tag: `beegarden-task-${task.id}`,
+    url: '/Tasks',
+  })
 
 const checkDueReminders = async () => {
   if (!pushEnabled) {
