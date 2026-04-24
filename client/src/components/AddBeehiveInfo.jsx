@@ -10,7 +10,7 @@ const AddBeehiveInfo = ({ isOpen, onClose, onConfirm, beehiveNum, setBeehiveNum,
         onClick={onClose}
       />
 
-      <div className="relative w-full max-w-md -translate-y-20 rounded-lg border border-[#f1d88a] bg-[#fffdf7] p-6 shadow-[0_24px_70px_rgba(93,58,0,0.18)] sm:translate-y-0">
+      <div className="relative w-full max-w-md -translate-y-20 rounded-lg border border-[#f1d88a] bg-[#fffdf7] p-6 shadow-[0_24px_70px_rgba(93,58,0,0.18)] sm:max-w-xl sm:translate-y-0">
         <button
           type="button"
           onClick={onClose}

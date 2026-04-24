@@ -121,7 +121,7 @@ const TreatmentModal = ({ isOpen, onClose, hiveId, session }) => {
         <div className="absolute inset-0 z-0 bg-[#111827]/35 backdrop-blur-sm" />
 
         <div
-          className="relative z-10 my-4 flex max-h-[calc(100vh-2rem)] w-full max-w-md flex-col rounded-lg border border-[#f1d88a] bg-[#fffdf7] p-6 shadow-[0_24px_70px_rgba(93,58,0,0.18)]"
+          className="relative z-10 my-4 flex max-h-[calc(100vh-2rem)] w-full max-w-md flex-col rounded-lg border border-[#f1d88a] bg-[#fffdf7] p-6 shadow-[0_24px_70px_rgba(93,58,0,0.18)] sm:max-w-2xl"
           onClick={(event) => event.stopPropagation()}
         >
           <button

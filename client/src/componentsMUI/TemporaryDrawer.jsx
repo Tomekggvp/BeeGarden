@@ -7,7 +7,7 @@ const menuItems = [
   { label: 'Список дел', path: 'Tasks' },
   { label: 'Записи', path: 'Notes' },
   { label: 'Лечение', path: 'Treatment' },
-  { label: 'Ветеринарный контроль', path: 'VetControl' },
+  { label: 'Откачка', path: 'VetControl' },
   { label: 'Пчелосемьи', path: 'BeeColonyGraphics' },
   { label: 'Проверки', path: 'ChecksPerformed' },
   { label: 'Календарь', path: 'Calendar' },

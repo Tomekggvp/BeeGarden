@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { CalendarDays, Pill, Syringe, X } from 'lucide-react'
+import { CalendarDays, Pill, Syringe, Trash2, X } from 'lucide-react'
 import { supabase } from '../services/supabaseClient'
 
 const formatTreatmentDate = (value) => {
@@ -24,6 +24,7 @@ const getTreatmentPeriod = (record) => {
 const TreatmentHistoryModal = ({ isOpen, onClose, hiveId, session, refreshKey = 0 }) => {
   const [records, setRecords] = useState([])
   const [isLoading, setIsLoading] = useState(false)
+  const [deletingId, setDeletingId] = useState(null)
   const [errorMessage, setErrorMessage] = useState('')
 
   useEffect(() => {
@@ -55,6 +56,30 @@ const TreatmentHistoryModal = ({ isOpen, onClose, hiveId, session, refreshKey = 
     fetchTreatmentHistory()
   }, [hiveId, isOpen, refreshKey, session?.user?.id])
 
+  const handleDelete = async (recordId) => {
+    if (!session?.user?.id || deletingId) return
+
+    setDeletingId(recordId)
+
+    const { error } = await supabase
+      .from('treatments')
+      .delete()
+      .eq('id', recordId)
+      .eq('hive_id', String(hiveId))
+      .eq('user_id', session.user.id)
+
+    setDeletingId(null)
+
+    if (error) {
+      console.error('Delete treatment error:', error)
+      setErrorMessage('Не удалось удалить запись о лечении.')
+      return
+    }
+
+    setErrorMessage('')
+    setRecords((currentRecords) => currentRecords.filter((record) => record.id !== recordId))
+  }
+
   if (!isOpen) return null
 
   return (
@@ -65,7 +90,7 @@ const TreatmentHistoryModal = ({ isOpen, onClose, hiveId, session, refreshKey = 
       <div className="absolute inset-0 bg-[#111827]/40 backdrop-blur-sm" />
 
       <div
-        className="relative z-10 flex max-h-[calc(100vh-2rem)] w-full max-w-xl flex-col rounded-lg border border-[#f1d88a] bg-[#fffdf7] p-6 shadow-[0_24px_70px_rgba(93,58,0,0.18)]"
+        className="relative z-10 flex max-h-[calc(100vh-2rem)] w-full max-w-xl flex-col rounded-lg border border-[#f1d88a] bg-[#fffdf7] p-6 shadow-[0_24px_70px_rgba(93,58,0,0.18)] sm:max-w-3xl"
         onClick={(event) => event.stopPropagation()}
       >
         <button
@@ -101,46 +126,62 @@ const TreatmentHistoryModal = ({ isOpen, onClose, hiveId, session, refreshKey = 
             </p>
           ) : (
             <div className="space-y-3">
-              {records.map((record) => (
-                <div
-                  key={record.id}
-                  className="rounded-lg border border-[#f1d88a] bg-white px-4 py-4"
-                >
-                  <div className="flex flex-wrap items-start justify-between gap-3">
-                    <div>
-                      <p className="text-lg font-black text-[#2f2100]">
-                        {record.disease}
-                      </p>
-                      <p className="mt-1 inline-flex items-center gap-2 rounded-full bg-[#fff4cc] px-3 py-1 text-xs font-black text-[#8b4f00]">
-                        <CalendarDays size={14} />
-                        {getTreatmentPeriod(record)}
-                      </p>
+              {records.map((record) => {
+                const isDeleting = deletingId === record.id
+
+                return (
+                  <div
+                    key={record.id}
+                    className="rounded-lg border border-[#f1d88a] bg-white px-4 py-4"
+                  >
+                    <div className="flex flex-wrap items-start justify-between gap-3">
+                      <div>
+                        <p className="text-lg font-black text-[#2f2100]">
+                          {record.disease}
+                        </p>
+                        <p className="mt-1 inline-flex items-center gap-2 rounded-full bg-[#fff4cc] px-3 py-1 text-xs font-black text-[#8b4f00]">
+                          <CalendarDays size={14} />
+                          {getTreatmentPeriod(record)}
+                        </p>
+                      </div>
+
+                      <div className="flex items-start gap-2">
+                        <span className="rounded-full border border-[#f1d88a] bg-[#fffaf0] px-3 py-1 text-xs font-black text-[#9a5a00]">
+                          {record.dosage}
+                        </span>
+
+                        <button
+                          type="button"
+                          onClick={() => handleDelete(record.id)}
+                          disabled={isDeleting}
+                          className="flex h-9 w-9 items-center justify-center rounded-full border border-red-200 bg-red-50 text-red-500 transition-colors hover:bg-red-100 hover:text-red-600 disabled:cursor-not-allowed disabled:opacity-60"
+                          aria-label="Удалить запись о лечении"
+                        >
+                          <Trash2 size={16} />
+                        </button>
+                      </div>
                     </div>
 
-                    <span className="rounded-full border border-[#f1d88a] bg-[#fffaf0] px-3 py-1 text-xs font-black text-[#9a5a00]">
-                      {record.dosage}
-                    </span>
+                    <div className="mt-4 grid gap-3 text-sm font-semibold text-[#6f5a26] sm:grid-cols-2">
+                      <div className="rounded-lg bg-[#fffaf0] px-3 py-3">
+                        <span className="mb-1 flex items-center gap-2 text-xs font-black uppercase tracking-[0.18em] text-[#9a5a00]">
+                          <Pill size={14} />
+                          Препарат
+                        </span>
+                        <p className="text-base text-[#2f2100]">{record.medication}</p>
+                      </div>
+
+                      <div className="rounded-lg bg-[#fffaf0] px-3 py-3">
+                        <span className="mb-1 flex items-center gap-2 text-xs font-black uppercase tracking-[0.18em] text-[#9a5a00]">
+                          <Syringe size={14} />
+                          Дозировка
+                        </span>
+                        <p className="whitespace-pre-line text-base text-[#2f2100]">{record.dosage}</p>
+                      </div>
+                    </div>
                   </div>
-
-                  <div className="mt-4 grid gap-3 text-sm font-semibold text-[#6f5a26] sm:grid-cols-2">
-                    <div className="rounded-lg bg-[#fffaf0] px-3 py-3">
-                      <span className="mb-1 flex items-center gap-2 text-xs font-black uppercase tracking-[0.18em] text-[#9a5a00]">
-                        <Pill size={14} />
-                        Препарат
-                      </span>
-                      <p className="text-base text-[#2f2100]">{record.medication}</p>
-                    </div>
-
-                    <div className="rounded-lg bg-[#fffaf0] px-3 py-3">
-                      <span className="mb-1 flex items-center gap-2 text-xs font-black uppercase tracking-[0.18em] text-[#9a5a00]">
-                        <Syringe size={14} />
-                        Дозировка
-                      </span>
-                      <p className="whitespace-pre-line text-base text-[#2f2100]">{record.dosage}</p>
-                    </div>
-                  </div>
-                </div>
-              ))}
+                )
+              })}
             </div>
           )}
         </div>

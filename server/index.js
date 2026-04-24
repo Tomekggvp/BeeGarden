@@ -278,6 +278,23 @@ const sendReminderPushes = async (task, subscriptions) =>
     url: '/Tasks',
   })
 
+const storeReminderHistory = async (task, deliveredAt) => {
+  const { error } = await supabase
+    .from('task_notification_history')
+    .upsert({
+      user_id: String(task.user_id),
+      task_id: task.id,
+      hive_id: String(task.hive_id),
+      task_text: task.task_text,
+      reminder_at: task.reminder_at,
+      delivered_at: deliveredAt,
+    }, { onConflict: 'user_id,task_id' })
+
+  if (error) {
+    console.error('Reminder history save error:', error.message)
+  }
+}
+
 const checkDueReminders = async () => {
   if (!pushEnabled) {
     return { status: 'disabled', matched: 0, sent: 0 }
@@ -325,6 +342,8 @@ const checkDueReminders = async () => {
       if (!sent) continue
 
       sentCount += 1
+
+      await storeReminderHistory(task, now)
 
       const { error: updateError } = await supabase
         .from('tasks')

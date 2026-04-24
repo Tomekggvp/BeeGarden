@@ -5,15 +5,12 @@ const AuthForm = () => {
   const [loading, setLoading] = useState(false)
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
-  const [isSignUp, setIsSignUp] = useState(false)
 
   const handleAuth = async (event) => {
     event.preventDefault()
     setLoading(true)
 
-    const { error } = isSignUp
-      ? await supabase.auth.signUp({ email, password })
-      : await supabase.auth.signInWithPassword({ email, password })
+    const { error } = await supabase.auth.signInWithPassword({ email, password })
 
     if (error) alert(error.message)
     setLoading(false)
@@ -28,7 +25,7 @@ const AuthForm = () => {
             BeeGarden
           </div>
           <h1 className="font-['Tenor_Sans'] text-5xl leading-none text-[#2f2100]">
-            {isSignUp ? 'Регистрация' : 'Вход'}
+            Вход
           </h1>
         </div>
 
@@ -54,17 +51,9 @@ const AuthForm = () => {
             disabled={loading}
             className="w-full rounded-lg bg-[#f8b400] py-4 font-black text-[#2b1a00] shadow-sm transition-all hover:bg-[#ffd24a] active:scale-95 disabled:opacity-60"
           >
-            {loading ? 'Подождите...' : isSignUp ? 'Создать аккаунт' : 'Войти'}
+            {loading ? 'Подождите...' : 'Войти'}
           </button>
         </form>
-
-        <button
-          type="button"
-          onClick={() => setIsSignUp(!isSignUp)}
-          className="mt-4 w-full rounded-lg border border-[#f1d88a] px-6 py-3 text-sm font-bold text-[#7a5a1a] transition-colors hover:bg-[#fff4cc]"
-        >
-          {isSignUp ? 'Уже есть аккаунт? Войти' : 'Создать аккаунт'}
-        </button>
       </div>
     </main>
   )

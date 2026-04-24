@@ -201,7 +201,7 @@ function App() {
             <Route path="/Location" element={<Location session={session} />} />
             <Route path="/Notes" element={<Notes session={session} />} />
             <Route path="/Treatment" element={<Treatment session={session} hives={hives} />} />
-            <Route path="/VetControl" element={<VetControl session={session} />} />
+            <Route path="/VetControl" element={<VetControl session={session} hives={hives} />} />
           </Routes>
         </Suspense>
       </div>

@@ -70,7 +70,7 @@ const BeehiveDetails = ({ isOpen, onClose, hiveId, session }) => {
       />
 
       <div
-        className="relative my-4 w-full max-w-md -translate-y-20 rounded-lg border border-[#f1d88a] bg-[#fffdf7] p-6 shadow-[0_24px_70px_rgba(93,58,0,0.18)] sm:my-6 sm:translate-y-0"
+        className="relative my-4 w-full max-w-md -translate-y-20 rounded-lg border border-[#f1d88a] bg-[#fffdf7] p-6 shadow-[0_24px_70px_rgba(93,58,0,0.18)] sm:my-6 sm:max-w-2xl sm:translate-y-0"
         onClick={(event) => event.stopPropagation()}
       >
         <button
