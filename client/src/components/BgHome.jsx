@@ -2,7 +2,14 @@ import { XIcon } from 'lucide-react'
 import { assets } from '../assets/assets'
 import Beehive from './Beehive'
 
-const BgHome = ({ component = [], removeComponent, onOpenDetails, onAddHive, showDelete = false }) => {
+const BgHome = ({
+  component = [],
+  removeComponent,
+  onOpenDetails,
+  onAddHive,
+  showDelete = false,
+  badgeByHiveId = {},
+}) => {
   const isEmpty = component.length === 0
 
   return (
@@ -59,7 +66,10 @@ const BgHome = ({ component = [], removeComponent, onOpenDetails, onAddHive, sho
                 }}
                 className="hive-button !w-auto rounded-lg p-1 transition-all hover:-translate-y-1 active:translate-y-0"
               >
-                <Beehive beehiveNum={item.number} />
+                <Beehive
+                  beehiveNum={item.number}
+                  badges={badgeByHiveId[String(item.id)] || badgeByHiveId[String(item.number)] || []}
+                />
               </button>
               </div>
             </div>

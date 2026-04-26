@@ -110,6 +110,54 @@ app.delete('/api/push/subscribe', async (req, res) => {
   res.json({ success: true })
 })
 
+app.post('/api/check-notifications/send', async (req, res) => {
+  if (!pushEnabled) {
+    return res.status(503).json({ error: 'Push notifications are not configured' })
+  }
+
+  const userId = getUserId(req.body.user_id)
+  const hiveId = getHiveNumber(req.body.hive_id)
+  const kind = String(req.body.kind || '').trim()
+
+  if (!userId || !hiveId || (kind !== 'pumping' && kind !== 'treatment')) {
+    return res.status(400).json({ error: 'user_id, hive_id and kind(pumping|treatment) are required' })
+  }
+
+  const { data: subscriptions, error: subscriptionsError } = await supabase
+    .from('push_subscriptions')
+    .select('endpoint,subscription')
+    .eq('user_id', userId)
+
+  if (subscriptionsError) {
+    return res.status(500).json({ error: subscriptionsError.message })
+  }
+
+  if (!subscriptions?.length) {
+    return res.json({ sent: false, reason: 'no_subscriptions' })
+  }
+
+  const messageByKind = {
+    pumping: 'откачать мёд',
+    treatment: 'нужно лечение',
+  }
+
+  const urlByKind = {
+    pumping: '/VetControl',
+    treatment: '/Treatment',
+  }
+
+  const sent = await sendPushPayload(subscriptions, {
+    title: `Улей №${hiveId}`,
+    hiveId,
+    body: messageByKind[kind],
+    icon: '/bee.png',
+    tag: `beegarden-check-${kind}-${hiveId}`,
+    url: urlByKind[kind],
+  })
+
+  res.json({ sent })
+})
+
 app.post('/api/reminders/run', async (req, res) => {
   if (!reminderCronSecret) {
     return res.status(503).json({ error: 'REMINDER_CRON_SECRET is not configured' })

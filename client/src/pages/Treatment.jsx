@@ -1,10 +1,44 @@
-import { useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import BgHome from '../components/BgHome'
 import TreatmentModal from '../components/TreatmentModal'
+import { fetchHiveChecksMap } from '../lib/hiveChecks'
 
 const Treatment = ({ session, hives }) => {
   const [selectedHiveId, setSelectedHiveId] = useState(null)
   const [isModalOpen, setIsModalOpen] = useState(false)
+  const [checkMap, setCheckMap] = useState({})
+
+  useEffect(() => {
+    if (!session?.user?.id) return
+
+    const loadCheckMap = async () => {
+      try {
+        const nextMap = await fetchHiveChecksMap(session.user.id)
+        setCheckMap(nextMap)
+      } catch (error) {
+        console.error('Load treatment check flags error:', error)
+      }
+    }
+
+    loadCheckMap()
+  }, [session?.user?.id])
+
+  const badgeByHiveId = useMemo(
+    () =>
+      Object.entries(checkMap).reduce((accumulator, [hiveId, state]) => {
+        if (state.treatmentRequired) {
+          accumulator[hiveId] = [
+            {
+              kind: 'treatment',
+              title: 'Требуется лечение',
+            },
+          ]
+        }
+
+        return accumulator
+      }, {}),
+    [checkMap]
+  )
 
   const handleOpenTreatment = (id) => {
     setSelectedHiveId(id)
@@ -14,6 +48,16 @@ const Treatment = ({ session, hives }) => {
   const handleCloseModal = () => {
     setIsModalOpen(false)
     setSelectedHiveId(null)
+  }
+
+  const handleTreatmentSaved = (hiveId) => {
+    setCheckMap((currentMap) => ({
+      ...currentMap,
+      [String(hiveId)]: {
+        ...(currentMap[String(hiveId)] || {}),
+        treatmentRequired: false,
+      },
+    }))
   }
 
   return (
@@ -36,6 +80,7 @@ const Treatment = ({ session, hives }) => {
           component={hives}
           onOpenDetails={handleOpenTreatment}
           showDelete={false}
+          badgeByHiveId={badgeByHiveId}
         />
       </section>
 
@@ -45,6 +90,7 @@ const Treatment = ({ session, hives }) => {
           onClose={handleCloseModal}
           hiveId={selectedHiveId}
           session={session}
+          onTreatmentSaved={handleTreatmentSaved}
         />
       )}
     </main>

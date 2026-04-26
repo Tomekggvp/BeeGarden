@@ -195,9 +195,9 @@ function App() {
               )}
             />
             <Route path="/Tasks" element={<Tasks session={session} hives={hives} />} />
-            <Route path="/BeeColonyGraphics" element={<BeeColonyGraphics session={session} />} />
+            <Route path="/BeeColonyGraphics" element={<BeeColonyGraphics session={session} hives={hives} />} />
             <Route path="/Calendar" element={<Calendar session={session} />} />
-            <Route path="/ChecksPerformed" element={<ChecksPerformed session={session} />} />
+            <Route path="/ChecksPerformed" element={<ChecksPerformed session={session} hives={hives} />} />
             <Route path="/Location" element={<Location session={session} />} />
             <Route path="/Notes" element={<Notes session={session} />} />
             <Route path="/Treatment" element={<Treatment session={session} hives={hives} />} />

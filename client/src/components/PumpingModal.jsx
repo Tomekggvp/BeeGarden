@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Droplets, Plus, X } from 'lucide-react'
+import { clearHiveCheckRequirement } from '../lib/hiveChecks'
 import { supabase } from '../services/supabaseClient'
 
 const HONEY_TYPE_OPTIONS = [
@@ -44,7 +45,7 @@ const formatVolume = (value) => {
   })} л`
 }
 
-const PumpingModal = ({ isOpen, onClose, hiveId, session }) => {
+const PumpingModal = ({ isOpen, onClose, hiveId, session, onPumpingSaved }) => {
   const [form, setForm] = useState(createInitialFormState)
   const [records, setRecords] = useState([])
   const [isLoading, setIsLoading] = useState(false)
@@ -147,6 +148,13 @@ const PumpingModal = ({ isOpen, onClose, hiveId, session }) => {
       setSuccessMessage('')
       setErrorMessage('Не удалось сохранить откачку. Выполните SQL-обновление для таблицы honey_pumpings в Supabase.')
       return
+    }
+
+    try {
+      await clearHiveCheckRequirement(session.user.id, hiveId, 'pumping')
+      onPumpingSaved?.(String(hiveId))
+    } catch (clearError) {
+      console.error('Clear pumping check flag error:', clearError)
     }
 
     setRecords((currentRecords) => [data, ...currentRecords])

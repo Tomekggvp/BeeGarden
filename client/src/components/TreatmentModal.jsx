@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react'
 import { History, Plus, X } from 'lucide-react'
+import { clearHiveCheckRequirement } from '../lib/hiveChecks'
 import { supabase } from '../services/supabaseClient'
 import TreatmentHistoryModal from './TreatmentHistoryModal'
 
@@ -34,7 +35,7 @@ const formatTreatmentDate = (value) => {
   }).format(new Date(value))
 }
 
-const TreatmentModal = ({ isOpen, onClose, hiveId, session }) => {
+const TreatmentModal = ({ isOpen, onClose, hiveId, session, onTreatmentSaved }) => {
   const [form, setForm] = useState(createInitialFormState)
   const [isSaving, setIsSaving] = useState(false)
   const [errorMessage, setErrorMessage] = useState('')
@@ -102,6 +103,13 @@ const TreatmentModal = ({ isOpen, onClose, hiveId, session }) => {
       setSuccessMessage('')
       setErrorMessage('Не удалось сохранить лечение. Выполните SQL-обновление для таблицы treatments в Supabase.')
       return
+    }
+
+    try {
+      await clearHiveCheckRequirement(session.user.id, hiveId, 'treatment')
+      onTreatmentSaved?.(String(hiveId))
+    } catch (clearError) {
+      console.error('Clear treatment check flag error:', clearError)
     }
 
     setForm(createInitialFormState())

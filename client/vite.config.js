@@ -6,5 +6,12 @@ import tailwindcss from '@tailwindcss/vite'
 export default defineConfig({
   plugins: [
     react(),
-    tailwindcss(),],
+    ...(process.env.DISABLE_TAILWIND_VITE_PLUGIN === '1' ? [] : [tailwindcss()]),
+  ],
+  server: {
+    watch: {
+      usePolling: true,
+      interval: 250,
+    },
+  },
 })

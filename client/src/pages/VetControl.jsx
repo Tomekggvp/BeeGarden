@@ -1,10 +1,44 @@
-import { useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import BgHome from '../components/BgHome'
 import PumpingModal from '../components/PumpingModal'
+import { fetchHiveChecksMap } from '../lib/hiveChecks'
 
 const VetControl = ({ session, hives }) => {
   const [selectedHiveId, setSelectedHiveId] = useState(null)
   const [isModalOpen, setIsModalOpen] = useState(false)
+  const [checkMap, setCheckMap] = useState({})
+
+  useEffect(() => {
+    if (!session?.user?.id) return
+
+    const loadCheckMap = async () => {
+      try {
+        const nextMap = await fetchHiveChecksMap(session.user.id)
+        setCheckMap(nextMap)
+      } catch (error) {
+        console.error('Load pumping check flags error:', error)
+      }
+    }
+
+    loadCheckMap()
+  }, [session?.user?.id])
+
+  const badgeByHiveId = useMemo(
+    () =>
+      Object.entries(checkMap).reduce((accumulator, [hiveId, state]) => {
+        if (state.pumpingRequired) {
+          accumulator[hiveId] = [
+            {
+              kind: 'pumping',
+              title: 'Требуется откачка мёда',
+            },
+          ]
+        }
+
+        return accumulator
+      }, {}),
+    [checkMap]
+  )
 
   const handleOpenPumping = (id) => {
     setSelectedHiveId(id)
@@ -14,6 +48,16 @@ const VetControl = ({ session, hives }) => {
   const handleCloseModal = () => {
     setIsModalOpen(false)
     setSelectedHiveId(null)
+  }
+
+  const handlePumpingSaved = (hiveId) => {
+    setCheckMap((currentMap) => ({
+      ...currentMap,
+      [String(hiveId)]: {
+        ...(currentMap[String(hiveId)] || {}),
+        pumpingRequired: false,
+      },
+    }))
   }
 
   return (
@@ -36,6 +80,7 @@ const VetControl = ({ session, hives }) => {
           component={hives}
           onOpenDetails={handleOpenPumping}
           showDelete={false}
+          badgeByHiveId={badgeByHiveId}
         />
       </section>
 
@@ -45,6 +90,7 @@ const VetControl = ({ session, hives }) => {
           onClose={handleCloseModal}
           hiveId={selectedHiveId}
           session={session}
+          onPumpingSaved={handlePumpingSaved}
         />
       )}
     </main>

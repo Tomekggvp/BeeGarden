@@ -72,3 +72,4 @@ select
 from public.tasks
 where reminder_notified_at is not null
 on conflict (user_id, task_id) do nothing;
+`
