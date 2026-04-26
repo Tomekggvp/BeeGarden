@@ -1,7 +1,7 @@
 import { Cross, Droplets, Hexagon } from 'lucide-react'
 import { assets } from '../assets/assets'
 
-const badgeClassName = 'flex h-5 w-5 items-center justify-center sm:h-7 sm:w-7'
+const badgeClassName = 'flex h-6 w-6 items-center justify-center sm:h-9 sm:w-9'
 
 const HiveBadge = ({ kind, title }) => {
   if (kind === 'pumping') {
@@ -14,8 +14,8 @@ const HiveBadge = ({ kind, title }) => {
             strokeWidth={1.75}
           />
           <Droplets
-            size={12}
-            className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 text-[#8b4f00] sm:h-3.5 sm:w-3.5"
+            size={14}
+            className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 text-[#8b4f00] sm:h-5 sm:w-5"
           />
         </span>
       </span>
@@ -24,10 +24,10 @@ const HiveBadge = ({ kind, title }) => {
 
   return (
     <span
-      className={`${badgeClassName} rounded-[6px] border border-[#bfe2c7] bg-[#2f9e44] text-white shadow-sm`}
+      className={`${badgeClassName} rounded-[7px] border border-[#bfe2c7] bg-[#2f9e44] text-white shadow-sm`}
       title={title}
     >
-      <Cross size={12} strokeWidth={3} className="sm:h-3.5 sm:w-3.5" />
+      <Cross size={14} strokeWidth={3} className="sm:h-5 sm:w-5" />
     </span>
   )
 }

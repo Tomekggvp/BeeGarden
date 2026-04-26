@@ -8,6 +8,7 @@ import Home from './pages/Home'
 import AuthForm from './components/AuthForm'
 import LeafyCorners from './components/LeafyCorners'
 import ReminderScheduler from './components/ReminderScheduler'
+import GlobalNotificationsBell from './components/GlobalNotificationsBell'
 
 const Calendar = lazy(() => import('./pages/Calendar'))
 const ChecksPerformed = lazy(() => import('./pages/ChecksPerformed'))
@@ -179,6 +180,7 @@ function App() {
       <LeafyCorners />
       <ReminderScheduler session={session} />
       {!isAdminRoute && <TemporaryDrawer />}
+      {!isAdminRoute && <GlobalNotificationsBell session={session} />}
 
       <div className="relative z-10">
         <Suspense fallback={<PageFallback />}>
@@ -194,14 +196,14 @@ function App() {
                 />
               )}
             />
-            <Route path="/Tasks" element={<Tasks session={session} hives={hives} />} />
-            <Route path="/BeeColonyGraphics" element={<BeeColonyGraphics session={session} hives={hives} />} />
-            <Route path="/Calendar" element={<Calendar session={session} />} />
-            <Route path="/ChecksPerformed" element={<ChecksPerformed session={session} hives={hives} />} />
-            <Route path="/Location" element={<Location session={session} />} />
-            <Route path="/Notes" element={<Notes session={session} />} />
-            <Route path="/Treatment" element={<Treatment session={session} hives={hives} />} />
-            <Route path="/VetControl" element={<VetControl session={session} hives={hives} />} />
+            <Route path="/tasks" element={<Tasks session={session} hives={hives} />} />
+            <Route path="/bee-colonies" element={<BeeColonyGraphics session={session} hives={hives} />} />
+            <Route path="/calendar" element={<Calendar session={session} />} />
+            <Route path="/checks" element={<ChecksPerformed session={session} hives={hives} />} />
+            <Route path="/location" element={<Location session={session} />} />
+            <Route path="/notes" element={<Notes session={session} />} />
+            <Route path="/treatment" element={<Treatment session={session} hives={hives} />} />
+            <Route path="/pumping" element={<VetControl session={session} hives={hives} />} />
           </Routes>
         </Suspense>
       </div>

@@ -1,13 +1,10 @@
 import { useState } from 'react'
-import { Bell } from 'lucide-react'
 import BgHome from '../components/BgHome'
 import TaskModal from '../components/TaskModal'
-import TaskNotificationsModal from '../components/TaskNotificationsModal'
 
 const Tasks = ({ session, hives }) => {
   const [selectedHiveId, setSelectedHiveId] = useState(null)
   const [isTaskModalOpen, setIsTaskModalOpen] = useState(false)
-  const [isNotificationsModalOpen, setIsNotificationsModalOpen] = useState(false)
 
   const handleOpenTasks = (id) => {
     setSelectedHiveId(id)
@@ -28,15 +25,6 @@ const Tasks = ({ session, hives }) => {
           <p className="mt-3 max-w-xl text-base font-semibold text-[#6f5a26]">
             Выберите улей, чтобы назначить задачу или открыть историю уведомлений.
           </p>
-
-          <button
-            type="button"
-            onClick={() => setIsNotificationsModalOpen(true)}
-            className="mt-4 inline-flex items-center gap-2 rounded-lg border border-[#f1d88a] bg-[#fffaf0] px-4 py-3 text-sm font-black text-[#8b4f00] transition-all hover:border-[#f8b400] hover:bg-[#fff4cc]"
-          >
-            <Bell size={16} />
-            История уведомлений
-          </button>
         </div>
 
         <BgHome
@@ -51,14 +39,6 @@ const Tasks = ({ session, hives }) => {
           isOpen={isTaskModalOpen}
           onClose={() => setIsTaskModalOpen(false)}
           hiveId={selectedHiveId}
-          session={session}
-        />
-      )}
-
-      {isNotificationsModalOpen && (
-        <TaskNotificationsModal
-          isOpen={isNotificationsModalOpen}
-          onClose={() => setIsNotificationsModalOpen(false)}
           session={session}
         />
       )}

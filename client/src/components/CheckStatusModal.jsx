@@ -1,9 +1,11 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { Bell, Droplets, Plus, Save, X } from 'lucide-react'
 import api from '../api/axios'
 import {
   EMPTY_HIVE_CHECKS,
   fetchHiveCheck,
+  normalizeHiveCheck,
+  subscribeHiveChecks,
   upsertHiveCheck,
 } from '../lib/hiveChecks'
 import {
@@ -35,8 +37,7 @@ const CheckStatusModal = ({ isOpen, onClose, hiveId, session, onSaved }) => {
   const [isSaving, setIsSaving] = useState(false)
   const [errorMessage, setErrorMessage] = useState('')
   const [successMessage, setSuccessMessage] = useState('')
-  const saveTimerRef = useRef(null)
-  const pendingPushKindsRef = useRef(new Set())
+  const [realtimeMessage, setRealtimeMessage] = useState('')
 
   useEffect(() => {
     if (!isOpen || !session?.user?.id || !hiveId) return
@@ -50,6 +51,7 @@ const CheckStatusModal = ({ isOpen, onClose, hiveId, session, onSaved }) => {
         setLoadedState(state)
         setErrorMessage('')
         setSuccessMessage('')
+        setRealtimeMessage('')
       } catch (error) {
         console.error('Load hive check error:', error)
         setErrorMessage('Не удалось загрузить настройки проверки.')
@@ -61,19 +63,34 @@ const CheckStatusModal = ({ isOpen, onClose, hiveId, session, onSaved }) => {
     loadHiveCheck()
   }, [hiveId, isOpen, session?.user?.id])
 
-  useEffect(() => () => {
-    if (saveTimerRef.current) {
-      window.clearTimeout(saveTimerRef.current)
-      saveTimerRef.current = null
-    }
-  }, [])
-
   const isDirty = useMemo(() => (
     form.pumpingRequired !== loadedState.pumpingRequired
     || form.pumpingNotificationsEnabled !== loadedState.pumpingNotificationsEnabled
     || form.treatmentRequired !== loadedState.treatmentRequired
     || form.treatmentNotificationsEnabled !== loadedState.treatmentNotificationsEnabled
   ), [form, loadedState])
+
+  useEffect(() => {
+    if (!isOpen || !session?.user?.id || !hiveId) return
+
+    const subscription = subscribeHiveChecks(session.user.id, {
+      onUpsert: (row) => {
+        if (String(row?.hive_id) !== String(hiveId)) return
+        const nextState = normalizeHiveCheck(row)
+
+        setLoadedState(nextState)
+        setSuccessMessage('')
+        setErrorMessage('')
+
+        setRealtimeMessage('Обновлено на другом устройстве.')
+
+        // Не перетираем изменения пользователя до сохранения
+        setForm((currentForm) => (isDirty ? currentForm : nextState))
+      },
+    })
+
+    return () => subscription.unsubscribe()
+  }, [hiveId, isDirty, isOpen, session?.user?.id])
 
   const updateFlag = (field) => (event) => {
     const nextChecked = event.target.checked
@@ -175,8 +192,6 @@ const CheckStatusModal = ({ isOpen, onClose, hiveId, session, onSaved }) => {
         }
       }
 
-      pendingPushKindsRef.current.clear()
-
       if (showSuccess) {
         setSuccessMessage(`Проверки для улья №${hiveId} сохранены.`)
       }
@@ -190,38 +205,6 @@ const CheckStatusModal = ({ isOpen, onClose, hiveId, session, onSaved }) => {
       setIsSaving(false)
     }
   }
-
-  useEffect(() => {
-    if (!isOpen || isLoading || !session?.user?.id || !hiveId) return
-    if (!isDirty) return
-    if (isSaving) return
-
-    if (!loadedState.pumpingRequired && form.pumpingRequired && form.pumpingNotificationsEnabled) {
-      pendingPushKindsRef.current.add('pumping')
-    }
-
-    if (!loadedState.treatmentRequired && form.treatmentRequired && form.treatmentNotificationsEnabled) {
-      pendingPushKindsRef.current.add('treatment')
-    }
-
-    if (saveTimerRef.current) {
-      window.clearTimeout(saveTimerRef.current)
-    }
-
-    saveTimerRef.current = window.setTimeout(() => {
-      saveState(form, { showSuccess: false })
-    }, 350)
-  }, [
-    form,
-    hiveId,
-    isDirty,
-    isLoading,
-    isOpen,
-    isSaving,
-    loadedState.pumpingRequired,
-    loadedState.treatmentRequired,
-    session?.user?.id,
-  ])
 
   if (!isOpen) return null
 
@@ -330,6 +313,12 @@ const CheckStatusModal = ({ isOpen, onClose, hiveId, session, onSaved }) => {
           {successMessage && (
             <p className="rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm font-bold text-emerald-700">
               {successMessage}
+            </p>
+          )}
+
+          {realtimeMessage && !isDirty && (
+            <p className="rounded-lg border border-sky-200 bg-sky-50 px-3 py-2 text-sm font-bold text-sky-800">
+              {realtimeMessage}
             </p>
           )}
 

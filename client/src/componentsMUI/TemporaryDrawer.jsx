@@ -3,27 +3,33 @@ import { XIcon, Menu } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import { supabase } from '../services/supabaseClient'
 
+export const MENU_VISIBILITY_EVENT = 'beegarden:menu-visibility'
+
 const menuItems = [
-  { label: 'Список дел', path: 'Tasks' },
-  { label: 'Записи', path: 'Notes' },
-  { label: 'Лечение', path: 'Treatment' },
-  { label: 'Откачка', path: 'VetControl' },
-  { label: 'Пчелосемьи', path: 'BeeColonyGraphics' },
-  { label: 'Проверки', path: 'ChecksPerformed' },
-  { label: 'Календарь', path: 'Calendar' },
-  { label: 'Выбор локации', path: 'Location' },
-  { label: 'Добавить улей', path: '' },
+  { label: 'Список дел', path: '/tasks' },
+  { label: 'Лечение', path: '/treatment' },
+  { label: 'Откачка', path: '/pumping' },
+  { label: 'Проверки', path: '/checks' },
+  { label: 'Выбор локации', path: '/location' },
+  { label: 'Добавить улей', path: '/' },
 ]
 
 export default function TemporaryDrawer() {
   const [open, setOpen] = useState(false)
   const navigate = useNavigate()
 
-  const closeDrawer = () => setOpen(false)
+  const setMenuVisible = (value) => {
+    window.dispatchEvent(new CustomEvent(MENU_VISIBILITY_EVENT, { detail: { open: value } }))
+  }
+
+  const closeDrawer = () => {
+    setOpen(false)
+    setMenuVisible(false)
+  }
 
   const handleNavigate = (path) => {
     closeDrawer()
-    navigate(`/${path}`)
+    navigate(path || '/')
   }
 
   const handleLogout = async () => {
@@ -36,7 +42,10 @@ export default function TemporaryDrawer() {
     <div className="relative z-20">
       <button
         type="button"
-        onClick={() => setOpen(true)}
+        onClick={() => {
+          setOpen(true)
+          setMenuVisible(true)
+        }}
         className="relative z-20 p-3 text-black hover:scale-105 active:scale-95 transition-transform"
         aria-label="Открыть меню"
       >

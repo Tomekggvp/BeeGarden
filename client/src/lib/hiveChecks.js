@@ -7,6 +7,14 @@ export const EMPTY_HIVE_CHECKS = Object.freeze({
   treatmentNotificationsEnabled: false,
 })
 
+export const buildHiveChecksMap = (rows = []) =>
+  (rows || []).reduce((accumulator, row) => {
+    const hiveId = String(row?.hive_id ?? '')
+    if (!hiveId) return accumulator
+    accumulator[hiveId] = normalizeHiveCheck(row)
+    return accumulator
+  }, {})
+
 const withHiveChecksHint = (error) => {
   if (!error) return error
   if (error.code === 'PGRST205' || /hive_checks/i.test(String(error.message || ''))) {
@@ -26,6 +34,50 @@ export const normalizeHiveCheck = (row) => {
     pumpingNotificationsEnabled: Boolean(safeRow.pumping_notifications_enabled),
     treatmentRequired: Boolean(safeRow.treatment_required),
     treatmentNotificationsEnabled: Boolean(safeRow.treatment_notifications_enabled),
+  }
+}
+
+export const applyHiveCheckRowToMap = (currentMap, row) => {
+  const hiveId = String(row?.hive_id ?? '')
+  if (!hiveId) return currentMap || {}
+
+  return {
+    ...(currentMap || {}),
+    [hiveId]: normalizeHiveCheck(row),
+  }
+}
+
+export const subscribeHiveChecks = (userId, handlers = {}) => {
+  const safeUserId = String(userId || '').trim()
+  if (!safeUserId) return { unsubscribe: () => {} }
+
+  const { onUpsert, onDelete } = handlers
+
+  const channel = supabase
+    .channel(`hive-checks-${safeUserId}`)
+    .on('postgres_changes', {
+      event: '*',
+      schema: 'public',
+      table: 'hive_checks',
+      filter: `user_id=eq.${safeUserId}`,
+    }, (payload) => {
+      if (payload.eventType === 'DELETE') {
+        onDelete?.(payload.old)
+        return
+      }
+
+      onUpsert?.(payload.new)
+    })
+    .subscribe()
+
+  return {
+    unsubscribe: () => {
+      try {
+        supabase.removeChannel(channel)
+      } catch (err) {
+        console.error('Hive checks realtime unsubscribe error:', err)
+      }
+    },
   }
 }
 
@@ -59,10 +111,7 @@ export const fetchHiveChecksMap = async (userId) => {
 
   if (error) throw withHiveChecksHint(error)
 
-  return (data || []).reduce((accumulator, row) => {
-    accumulator[String(row.hive_id)] = normalizeHiveCheck(row)
-    return accumulator
-  }, {})
+  return buildHiveChecksMap(data)
 }
 
 export const upsertHiveCheck = async (userId, hiveId, state) => {

@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import BgHome from '../components/BgHome'
 import PumpingModal from '../components/PumpingModal'
-import { fetchHiveChecksMap } from '../lib/hiveChecks'
+import { applyHiveCheckRowToMap, fetchHiveChecksMap, subscribeHiveChecks } from '../lib/hiveChecks'
 
 const VetControl = ({ session, hives }) => {
   const [selectedHiveId, setSelectedHiveId] = useState(null)
@@ -21,6 +21,27 @@ const VetControl = ({ session, hives }) => {
     }
 
     loadCheckMap()
+  }, [session?.user?.id])
+
+  useEffect(() => {
+    if (!session?.user?.id) return
+
+    const subscription = subscribeHiveChecks(session.user.id, {
+      onUpsert: (row) => {
+        setCheckMap((current) => applyHiveCheckRowToMap(current, row))
+      },
+      onDelete: (row) => {
+        const hiveId = String(row?.hive_id ?? '')
+        if (!hiveId) return
+        setCheckMap((current) => {
+          const next = { ...(current || {}) }
+          delete next[hiveId]
+          return next
+        })
+      },
+    })
+
+    return () => subscription.unsubscribe()
   }, [session?.user?.id])
 
   const badgeByHiveId = useMemo(

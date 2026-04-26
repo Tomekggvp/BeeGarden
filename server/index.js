@@ -142,8 +142,8 @@ app.post('/api/check-notifications/send', async (req, res) => {
   }
 
   const urlByKind = {
-    pumping: '/VetControl',
-    treatment: '/Treatment',
+    pumping: '/pumping',
+    treatment: '/treatment',
   }
 
   const sent = await sendPushPayload(subscriptions, {
@@ -323,7 +323,7 @@ const sendReminderPushes = async (task, subscriptions) =>
     reminderAt: task.reminder_at,
     icon: '/bee.png',
     tag: `beegarden-task-${task.id}`,
-    url: '/Tasks',
+    url: '/tasks',
   })
 
 const storeReminderHistory = async (task, deliveredAt) => {
