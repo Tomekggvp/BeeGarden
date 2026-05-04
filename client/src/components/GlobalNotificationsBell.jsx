@@ -28,12 +28,10 @@ const GlobalNotificationsBell = ({ session }) => {
   const [isOpen, setIsOpen] = useState(false)
   const [hasNew, setHasNew] = useState(false)
   const [isHidden, setIsHidden] = useState(false)
-  const [lastSeenAt, setLastSeenAt] = useState(null)
-
-  useEffect(() => {
-    if (!userId) return
-    setLastSeenAt(readLastSeenAt(userId))
-  }, [userId])
+  const [lastSeenByUser, setLastSeenByUser] = useState({})
+  const lastSeenAt = userId
+    ? (lastSeenByUser[userId] ?? readLastSeenAt(userId))
+    : null
 
   useEffect(() => {
     if (!userId) return
@@ -124,7 +122,10 @@ const GlobalNotificationsBell = ({ session }) => {
     setIsOpen(true)
     setHasNew(false)
     writeLastSeenAt(userId, now)
-    setLastSeenAt(now)
+    setLastSeenByUser((currentState) => ({
+      ...currentState,
+      [userId]: now,
+    }))
   }
 
   const handleClose = () => setIsOpen(false)
@@ -134,7 +135,7 @@ const GlobalNotificationsBell = ({ session }) => {
 
   return (
     <>
-      <div className="fixed left-1/2 top-3 z-[1200] -translate-x-1/2 md:left-auto md:right-6 md:translate-x-0">
+      <div className="fixed right-4 top-4 z-[1200] sm:right-6 sm:top-6">
         <button
           type="button"
           onClick={handleOpen}
@@ -158,4 +159,3 @@ const GlobalNotificationsBell = ({ session }) => {
 }
 
 export default GlobalNotificationsBell
-
