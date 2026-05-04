@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { Bell } from 'lucide-react'
+import { Bell, PanelTopClose, PanelTopOpen } from 'lucide-react'
 import { supabase } from '../services/supabaseClient'
 import TaskNotificationsModal from './TaskNotificationsModal'
 import { MENU_VISIBILITY_EVENT } from '../componentsMUI/TemporaryDrawer'
@@ -23,7 +23,11 @@ const writeLastSeenAt = (userId, value) => {
   }
 }
 
-const GlobalNotificationsBell = ({ session }) => {
+const GlobalNotificationsBell = ({
+  session,
+  isWeatherCollapsed = false,
+  onToggleWeather,
+}) => {
   const userId = session?.user?.id || ''
   const [isOpen, setIsOpen] = useState(false)
   const [hasNew, setHasNew] = useState(false)
@@ -39,14 +43,13 @@ const GlobalNotificationsBell = ({ session }) => {
     const loadHasNew = async () => {
       const seenAt = readLastSeenAt(userId)
 
-      const query = supabase
+      const { data, error } = await supabase
         .from('task_notification_history')
         .select('id,delivered_at')
         .eq('user_id', userId)
         .order('delivered_at', { ascending: false })
         .limit(1)
 
-      const { data, error } = await query
       if (error) {
         console.error('Load global notification state error:', error)
         return
@@ -83,12 +86,7 @@ const GlobalNotificationsBell = ({ session }) => {
         if (isOpen) return
 
         const deliveredAt = payload?.new?.delivered_at
-        if (!deliveredAt) {
-          setHasNew(true)
-          return
-        }
-
-        if (!lastSeenAt) {
+        if (!deliveredAt || !lastSeenAt) {
           setHasNew(true)
           return
         }
@@ -118,6 +116,7 @@ const GlobalNotificationsBell = ({ session }) => {
 
   const handleOpen = () => {
     if (!userId) return
+
     const now = new Date().toISOString()
     setIsOpen(true)
     setHasNew(false)
@@ -130,12 +129,20 @@ const GlobalNotificationsBell = ({ session }) => {
 
   const handleClose = () => setIsOpen(false)
 
-  if (!userId) return null
-  if (isHidden) return null
+  if (!userId || isHidden) return null
 
   return (
     <>
-      <div className="fixed right-4 top-4 z-[1200] sm:right-6 sm:top-6">
+      <div className="fixed right-4 top-4 z-[1200] flex items-center gap-2 sm:right-6 sm:top-6">
+        <button
+          type="button"
+          onClick={onToggleWeather}
+          className="inline-flex h-11 w-11 items-center justify-center rounded-full border border-[#f1d88a] bg-[#fffaf0]/95 text-[#8b4f00] shadow-sm backdrop-blur transition-colors hover:bg-[#fff4cc]"
+          aria-label={isWeatherCollapsed ? 'Развернуть погодный блок' : 'Свернуть погодный блок'}
+        >
+          {isWeatherCollapsed ? <PanelTopOpen size={20} /> : <PanelTopClose size={20} />}
+        </button>
+
         <button
           type="button"
           onClick={handleOpen}

@@ -9,6 +9,7 @@ import AuthForm from './components/AuthForm'
 import LeafyCorners from './components/LeafyCorners'
 import ReminderScheduler from './components/ReminderScheduler'
 import GlobalNotificationsBell from './components/GlobalNotificationsBell'
+import LocationWeatherOverlay from './components/LocationWeatherOverlay'
 
 const Calendar = lazy(() => import('./pages/Calendar'))
 const ChecksPerformed = lazy(() => import('./pages/ChecksPerformed'))
@@ -20,6 +21,7 @@ const BeeColonyGraphics = lazy(() => import('./pages/BeeColonyGraphics'))
 const VetControl = lazy(() => import('./pages/VetControl'))
 
 const HIVES_CACHE_PREFIX = 'beegarden:hives:'
+const WEATHER_OVERLAY_COLLAPSED_KEY = 'beegarden:weather-overlay:collapsed'
 
 const normalizeHives = (hives = []) =>
   hives.map((hive) => ({
@@ -76,6 +78,13 @@ function App() {
   const [loading, setLoading] = useState(true)
   const [hivesLoading, setHivesLoading] = useState(false)
   const [hives, setHives] = useState([])
+  const [isWeatherOverlayCollapsed, setIsWeatherOverlayCollapsed] = useState(() => {
+    try {
+      return localStorage.getItem(WEATHER_OVERLAY_COLLAPSED_KEY) === '1'
+    } catch {
+      return false
+    }
+  })
 
   const location = useLocation()
   const isAdminRoute = location.pathname.startsWith('/admin')
@@ -153,6 +162,20 @@ function App() {
     })
   }, [session?.user?.id])
 
+  const handleToggleWeatherOverlay = useCallback(() => {
+    setIsWeatherOverlayCollapsed((currentValue) => {
+      const nextValue = !currentValue
+
+      try {
+        localStorage.setItem(WEATHER_OVERLAY_COLLAPSED_KEY, nextValue ? '1' : '0')
+      } catch {
+        // ignore
+      }
+
+      return nextValue
+    })
+  }, [])
+
   if (loading) {
     return (
       <>
@@ -180,7 +203,19 @@ function App() {
       <LeafyCorners />
       <ReminderScheduler session={session} />
       {!isAdminRoute && <TemporaryDrawer />}
-      {!isAdminRoute && <GlobalNotificationsBell session={session} />}
+      {!isAdminRoute && (
+        <GlobalNotificationsBell
+          session={session}
+          isWeatherCollapsed={isWeatherOverlayCollapsed}
+          onToggleWeather={handleToggleWeatherOverlay}
+        />
+      )}
+      {!isAdminRoute && (
+        <LocationWeatherOverlay
+          session={session}
+          isCollapsed={isWeatherOverlayCollapsed}
+        />
+      )}
 
       <div className="relative z-10">
         <Suspense fallback={<PageFallback />}>
