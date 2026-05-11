@@ -19,6 +19,7 @@ const Tasks = lazy(() => import('./pages/Tasks'))
 const Treatment = lazy(() => import('./pages/Treatment'))
 const BeeColonyGraphics = lazy(() => import('./pages/BeeColonyGraphics'))
 const VetControl = lazy(() => import('./pages/VetControl'))
+const Charts = lazy(() => import('./pages/Charts'))
 
 const HIVES_CACHE_PREFIX = 'beegarden:hives:'
 const WEATHER_OVERLAY_COLLAPSED_KEY = 'beegarden:weather-overlay:collapsed'
@@ -239,6 +240,7 @@ function App() {
             <Route path="/notes" element={<Notes session={session} />} />
             <Route path="/treatment" element={<Treatment session={session} hives={hives} />} />
             <Route path="/pumping" element={<VetControl session={session} hives={hives} />} />
+            <Route path="/charts" element={<Charts session={session} hives={hives} />} />
           </Routes>
         </Suspense>
       </div>
