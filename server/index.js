@@ -259,7 +259,7 @@ app.get('/api/beehive/:id', async (req, res) => {
 })
 
 app.post('/api/beehive', async (req, res) => {
-  const { breed, swarms, install_date } = req.body
+  const { breed, swarms, install_date, custom_note } = req.body
   const hiveId = getHiveNumber(req.body.hive_id)
   const userId = getUserId(req.body.user_id)
 
@@ -275,6 +275,7 @@ app.post('/api/beehive', async (req, res) => {
       breed,
       swarms: parseInt(swarms, 10) || 0,
       install_date,
+      custom_note: String(custom_note || '').trim() || null,
     }, { onConflict: 'hive_id,user_id' })
 
   if (error) return res.status(400).json({ error: error.message })

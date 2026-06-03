@@ -3,34 +3,43 @@ import dayjs from 'dayjs'
 import { X } from 'lucide-react'
 import ComboBox from '../componentsMUI/ComboBox'
 import DateSelect from '../componentsMUI/DateSelect'
-import api from '../api/axios'
+import { supabase } from '../services/supabaseClient'
 
 const BeehiveDetails = ({ isOpen, onClose, hiveId, session }) => {
-  const [details, setDetails] = useState({ breed: null, swarms: '', date: null })
+  const [details, setDetails] = useState({
+    breed: null,
+    swarms: '',
+    date: null,
+    customNote: '',
+  })
   const [loading, setLoading] = useState(false)
 
   useEffect(() => {
     if (isOpen && hiveId && session?.user?.id) {
       setLoading(true)
 
-      api.get(`/api/beehive/${hiveId}`, {
-        params: { user_id: session.user.id },
-      })
-        .then((res) => {
-          const data = res.data
+      supabase
+        .from('beehive_details')
+        .select('*')
+        .eq('hive_id', String(hiveId))
+        .eq('user_id', session.user.id)
+        .maybeSingle()
+        .then(({ data, error }) => {
+          if (error) throw error
 
-          if (data && data.hive_id) {
+          if (data?.hive_id) {
             setDetails({
               breed: data.breed || null,
               swarms: data.swarms || '',
               date: data.install_date ? dayjs(data.install_date) : null,
+              customNote: data.custom_note || '',
             })
           } else {
-            setDetails({ breed: null, swarms: '', date: null })
+            setDetails({ breed: null, swarms: '', date: null, customNote: '' })
           }
         })
         .catch((err) => {
-          console.error('Load error:', err.response?.data || err.message)
+          console.error('Load error:', err.message)
         })
         .finally(() => setLoading(false))
     }
@@ -48,14 +57,20 @@ const BeehiveDetails = ({ isOpen, onClose, hiveId, session }) => {
         hive_id: String(hiveId),
         user_id: session.user.id,
         breed: details.breed,
-        swarms: details.swarms,
+        swarms: parseInt(details.swarms, 10) || 0,
         install_date: details.date ? details.date.format('YYYY-MM-DD') : null,
+        custom_note: String(details.customNote || '').trim() || null,
       }
 
-      await api.post('/api/beehive', payload)
+      const { error } = await supabase
+        .from('beehive_details')
+        .upsert(payload, { onConflict: 'hive_id,user_id' })
+
+      if (error) throw error
+
       onClose()
     } catch (err) {
-      const errorMessage = err.response?.data?.error || 'Ошибка сохранения'
+      const errorMessage = err.message || 'Ошибка сохранения'
       alert(errorMessage)
     } finally {
       setLoading(false)
@@ -113,6 +128,19 @@ const BeehiveDetails = ({ isOpen, onClose, hiveId, session }) => {
               value={details.date}
               onChange={(value) => setDetails({ ...details, date: value })}
             />
+
+            <div className="flex flex-col">
+              <label className="mb-2 block text-sm font-bold text-[#7a5a1a]">
+                Свободная запись
+              </label>
+              <textarea
+                value={details.customNote}
+                onChange={(event) => setDetails({ ...details, customNote: event.target.value })}
+                rows={5}
+                className="rounded-lg border-2 border-[#f1d88a] bg-white px-4 py-3 text-base font-medium text-[#2f2100] outline-none transition-all placeholder:text-[#b79d63] focus:border-[#f8b400] focus:ring-4 focus:ring-[#f8b400]/20"
+                placeholder="Введите любой текст: наблюдения, комментарий, напоминание"
+              />
+            </div>
           </div>
 
           <button
