@@ -31,8 +31,10 @@ const GlobalNotificationsBell = ({
   const userId = session?.user?.id || ''
   const [isOpen, setIsOpen] = useState(false)
   const [hasNew, setHasNew] = useState(false)
-  const [isHidden, setIsHidden] = useState(false)
+  const [isMenuHidden, setIsMenuHidden] = useState(false)
+  const [isModalHidden, setIsModalHidden] = useState(false)
   const [lastSeenByUser, setLastSeenByUser] = useState({})
+  const isHidden = isMenuHidden || isModalHidden
   const lastSeenAt = userId
     ? (lastSeenByUser[userId] ?? readLastSeenAt(userId))
     : null
@@ -107,11 +109,20 @@ const GlobalNotificationsBell = ({
 
   useEffect(() => {
     const handler = (event) => {
-      setIsHidden(Boolean(event?.detail?.open))
+      setIsMenuHidden(Boolean(event?.detail?.open))
     }
 
     window.addEventListener(MENU_VISIBILITY_EVENT, handler)
     return () => window.removeEventListener(MENU_VISIBILITY_EVENT, handler)
+  }, [])
+
+  useEffect(() => {
+    const handler = (event) => {
+      setIsModalHidden(Boolean(event?.detail?.open))
+    }
+
+    window.addEventListener('beegarden:modal-visibility', handler)
+    return () => window.removeEventListener('beegarden:modal-visibility', handler)
   }, [])
 
   const handleOpen = () => {

@@ -35,8 +35,10 @@ const LocationWeatherOverlay = ({ session, isCollapsed = false }) => {
     location: readSavedLocation(userId),
   }))
   const [weather, setWeather] = useState(null)
-  const [isHidden, setIsHidden] = useState(false)
+  const [isMenuHidden, setIsMenuHidden] = useState(false)
+  const [isModalHidden, setIsModalHidden] = useState(false)
   const [, setTick] = useState(0)
+  const isHidden = isMenuHidden || isModalHidden
   const savedLocation = savedLocationState.userId === userId
     ? savedLocationState.location
     : readSavedLocation(userId)
@@ -146,11 +148,20 @@ const LocationWeatherOverlay = ({ session, isCollapsed = false }) => {
 
   useEffect(() => {
     const handler = (event) => {
-      setIsHidden(Boolean(event?.detail?.open))
+      setIsMenuHidden(Boolean(event?.detail?.open))
     }
 
     window.addEventListener(MENU_VISIBILITY_EVENT, handler)
     return () => window.removeEventListener(MENU_VISIBILITY_EVENT, handler)
+  }, [])
+
+  useEffect(() => {
+    const handler = (event) => {
+      setIsModalHidden(Boolean(event?.detail?.open))
+    }
+
+    window.addEventListener('beegarden:modal-visibility', handler)
+    return () => window.removeEventListener('beegarden:modal-visibility', handler)
   }, [])
 
   const visibleWeather = savedLocation ? weather : null
