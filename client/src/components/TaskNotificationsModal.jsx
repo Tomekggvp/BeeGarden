@@ -22,6 +22,18 @@ const TaskNotificationsModal = ({ isOpen, onClose, session }) => {
   const [errorMessage, setErrorMessage] = useState('')
 
   useEffect(() => {
+    window.dispatchEvent(new CustomEvent('beegarden:modal-visibility', {
+      detail: { open: isOpen, modalId: 'task-notifications-modal' },
+    }))
+
+    return () => {
+      window.dispatchEvent(new CustomEvent('beegarden:modal-visibility', {
+        detail: { open: false, modalId: 'task-notifications-modal' },
+      }))
+    }
+  }, [isOpen])
+
+  useEffect(() => {
     if (!isOpen || !session?.user?.id) return
 
     const fetchNotificationHistory = async () => {

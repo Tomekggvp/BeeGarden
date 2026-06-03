@@ -15,6 +15,18 @@ const BeehiveDetails = ({ isOpen, onClose, hiveId, session }) => {
   const [loading, setLoading] = useState(false)
 
   useEffect(() => {
+    window.dispatchEvent(new CustomEvent('beegarden:modal-visibility', {
+      detail: { open: isOpen, modalId: 'beehive-details' },
+    }))
+
+    return () => {
+      window.dispatchEvent(new CustomEvent('beegarden:modal-visibility', {
+        detail: { open: false, modalId: 'beehive-details' },
+      }))
+    }
+  }, [isOpen])
+
+  useEffect(() => {
     if (isOpen && hiveId && session?.user?.id) {
       setLoading(true)
 

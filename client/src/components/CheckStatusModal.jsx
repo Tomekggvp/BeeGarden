@@ -40,6 +40,18 @@ const CheckStatusModal = ({ isOpen, onClose, hiveId, session, onSaved }) => {
   const [realtimeMessage, setRealtimeMessage] = useState('')
 
   useEffect(() => {
+    window.dispatchEvent(new CustomEvent('beegarden:modal-visibility', {
+      detail: { open: isOpen, modalId: 'check-status' },
+    }))
+
+    return () => {
+      window.dispatchEvent(new CustomEvent('beegarden:modal-visibility', {
+        detail: { open: false, modalId: 'check-status' },
+      }))
+    }
+  }, [isOpen])
+
+  useEffect(() => {
     if (!isOpen || !session?.user?.id || !hiveId) return
 
     const loadHiveCheck = async () => {

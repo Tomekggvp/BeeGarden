@@ -74,6 +74,18 @@ const TaskModal = ({ isOpen, onClose, hiveId, session }) => {
   const minReminderAt = useMemo(() => dayjs(), [])
 
   useEffect(() => {
+    window.dispatchEvent(new CustomEvent('beegarden:modal-visibility', {
+      detail: { open: isOpen, modalId: 'task-modal' },
+    }))
+
+    return () => {
+      window.dispatchEvent(new CustomEvent('beegarden:modal-visibility', {
+        detail: { open: false, modalId: 'task-modal' },
+      }))
+    }
+  }, [isOpen])
+
+  useEffect(() => {
     if (!isOpen || !hiveId || !session?.user?.id) return
 
     const fetchTasks = async () => {

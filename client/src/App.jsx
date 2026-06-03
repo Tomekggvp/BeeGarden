@@ -79,6 +79,7 @@ function App() {
   const [loading, setLoading] = useState(true)
   const [hivesLoading, setHivesLoading] = useState(false)
   const [hives, setHives] = useState([])
+  const [openModalIds, setOpenModalIds] = useState([])
   const [isWeatherOverlayCollapsed, setIsWeatherOverlayCollapsed] = useState(() => {
     try {
       return localStorage.getItem(WEATHER_OVERLAY_COLLAPSED_KEY) === '1'
@@ -89,6 +90,29 @@ function App() {
 
   const location = useLocation()
   const isAdminRoute = location.pathname.startsWith('/admin')
+
+  useEffect(() => {
+    const handleModalVisibility = (event) => {
+      const modalId = String(event?.detail?.modalId || '').trim()
+      if (!modalId) return
+
+      setOpenModalIds((currentIds) => {
+        const isOpen = Boolean(event?.detail?.open)
+        const nextIds = new Set(currentIds)
+
+        if (isOpen) {
+          nextIds.add(modalId)
+        } else {
+          nextIds.delete(modalId)
+        }
+
+        return Array.from(nextIds)
+      })
+    }
+
+    window.addEventListener('beegarden:modal-visibility', handleModalVisibility)
+    return () => window.removeEventListener('beegarden:modal-visibility', handleModalVisibility)
+  }, [])
 
   useEffect(() => {
     let isMounted = true
@@ -204,14 +228,14 @@ function App() {
       <LeafyCorners />
       <ReminderScheduler session={session} />
       {!isAdminRoute && <TemporaryDrawer />}
-      {!isAdminRoute && (
+      {!isAdminRoute && openModalIds.length === 0 && (
         <GlobalNotificationsBell
           session={session}
           isWeatherCollapsed={isWeatherOverlayCollapsed}
           onToggleWeather={handleToggleWeatherOverlay}
         />
       )}
-      {!isAdminRoute && (
+      {!isAdminRoute && openModalIds.length === 0 && (
         <LocationWeatherOverlay
           session={session}
           isCollapsed={isWeatherOverlayCollapsed}

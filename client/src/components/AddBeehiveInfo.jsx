@@ -1,6 +1,19 @@
+import { useEffect } from 'react'
 import { XIcon } from 'lucide-react'
 
 const AddBeehiveInfo = ({ isOpen, onClose, onConfirm, beehiveNum, setBeehiveNum, isSaving = false }) => {
+  useEffect(() => {
+    window.dispatchEvent(new CustomEvent('beegarden:modal-visibility', {
+      detail: { open: isOpen, modalId: 'add-beehive-info' },
+    }))
+
+    return () => {
+      window.dispatchEvent(new CustomEvent('beegarden:modal-visibility', {
+        detail: { open: false, modalId: 'add-beehive-info' },
+      }))
+    }
+  }, [isOpen])
+
   if (!isOpen) return null
 
   return (

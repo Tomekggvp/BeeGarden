@@ -45,12 +45,12 @@ const TreatmentModal = ({ isOpen, onClose, hiveId, session, onTreatmentSaved }) 
 
   useEffect(() => {
     window.dispatchEvent(new CustomEvent('beegarden:modal-visibility', {
-      detail: { open: isOpen },
+      detail: { open: isOpen, modalId: 'treatment-modal' },
     }))
 
     return () => {
       window.dispatchEvent(new CustomEvent('beegarden:modal-visibility', {
-        detail: { open: false },
+        detail: { open: false, modalId: 'treatment-modal' },
       }))
     }
   }, [isOpen])

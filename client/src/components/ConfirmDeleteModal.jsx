@@ -1,8 +1,20 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { AlertTriangle, X } from 'lucide-react'
 
 const ConfirmDeleteModal = ({ isOpen, onClose, onConfirm, hiveId }) => {
   const [input, setInput] = useState('')
+
+  useEffect(() => {
+    window.dispatchEvent(new CustomEvent('beegarden:modal-visibility', {
+      detail: { open: isOpen, modalId: 'confirm-delete' },
+    }))
+
+    return () => {
+      window.dispatchEvent(new CustomEvent('beegarden:modal-visibility', {
+        detail: { open: false, modalId: 'confirm-delete' },
+      }))
+    }
+  }, [isOpen])
 
   if (!isOpen) return null
 

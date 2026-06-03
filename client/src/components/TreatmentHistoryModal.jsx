@@ -28,6 +28,18 @@ const TreatmentHistoryModal = ({ isOpen, onClose, hiveId, session, refreshKey = 
   const [errorMessage, setErrorMessage] = useState('')
 
   useEffect(() => {
+    window.dispatchEvent(new CustomEvent('beegarden:modal-visibility', {
+      detail: { open: isOpen, modalId: 'treatment-history-modal' },
+    }))
+
+    return () => {
+      window.dispatchEvent(new CustomEvent('beegarden:modal-visibility', {
+        detail: { open: false, modalId: 'treatment-history-modal' },
+      }))
+    }
+  }, [isOpen])
+
+  useEffect(() => {
     if (!isOpen || !hiveId || !session?.user?.id) return
 
     const fetchTreatmentHistory = async () => {

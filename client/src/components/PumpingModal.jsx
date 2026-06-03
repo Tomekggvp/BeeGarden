@@ -54,6 +54,18 @@ const PumpingModal = ({ isOpen, onClose, hiveId, session, onPumpingSaved }) => {
   const [successMessage, setSuccessMessage] = useState('')
 
   useEffect(() => {
+    window.dispatchEvent(new CustomEvent('beegarden:modal-visibility', {
+      detail: { open: isOpen, modalId: 'pumping-modal' },
+    }))
+
+    return () => {
+      window.dispatchEvent(new CustomEvent('beegarden:modal-visibility', {
+        detail: { open: false, modalId: 'pumping-modal' },
+      }))
+    }
+  }, [isOpen])
+
+  useEffect(() => {
     if (!isOpen || !hiveId || !session?.user?.id) return
 
     const fetchPumpings = async () => {
