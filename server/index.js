@@ -56,6 +56,38 @@ app.get('/api/health', (_req, res) => {
   res.json({ ok: true })
 })
 
+app.get('/api/weather/location', async (req, res) => {
+  const latitude = Number(req.query.latitude)
+  const longitude = Number(req.query.longitude)
+
+  if (!Number.isFinite(latitude) || !Number.isFinite(longitude)) {
+    return res.status(400).json({ error: 'latitude and longitude are required' })
+  }
+
+  const url = new URL('https://api.open-meteo.com/v1/forecast')
+  url.searchParams.set('latitude', String(latitude))
+  url.searchParams.set('longitude', String(longitude))
+  url.searchParams.set('current', 'temperature_2m,is_day,wind_speed_10m')
+  url.searchParams.set('hourly', 'precipitation_probability')
+  url.searchParams.set('forecast_hours', '24')
+  url.searchParams.set('timezone', 'auto')
+
+  try {
+    const upstreamResponse = await fetch(url)
+    const body = await upstreamResponse.text()
+    const contentType = upstreamResponse.headers.get('content-type') || 'application/json'
+
+    if (!upstreamResponse.ok) {
+      return res.status(upstreamResponse.status).type(contentType).send(body)
+    }
+
+    return res.status(200).type(contentType).send(body)
+  } catch (error) {
+    console.error('Weather proxy error:', error)
+    return res.status(502).json({ error: 'Failed to load weather data' })
+  }
+})
+
 app.get('/api/push/vapid-public-key', (_req, res) => {
   if (!pushEnabled) {
     return res.status(503).json({ error: 'Push notifications are not configured' })

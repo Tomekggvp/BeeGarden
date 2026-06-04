@@ -26,7 +26,7 @@ const withLocationHint = (error) => {
 
   if (error.code === 'PGRST205' || /user_locations/i.test(String(error.message || ''))) {
     return Object.assign(new Error(
-      "Не найдена таблица 'public.user_locations' в Supabase. Выполните SQL из файла supabase_user_locations.sql и обновите PostgREST schema cache в настройках API."
+      "РќРµ РЅР°Р№РґРµРЅР° С‚Р°Р±Р»РёС†Р° 'public.user_locations' РІ Supabase. Р’С‹РїРѕР»РЅРёС‚Рµ SQL РёР· С„Р°Р№Р»Р° supabase_user_locations.sql Рё РѕР±РЅРѕРІРёС‚Рµ PostgREST schema cache РІ РЅР°СЃС‚СЂРѕР№РєР°С… API."
     ), { originalError: error })
   }
 
@@ -205,10 +205,11 @@ export const fetchLocationWeather = async ({ latitude, longitude, signal } = {})
 
   const response = await fetch(url, { signal })
   if (!response.ok) {
-    throw new Error('Не удалось получить погодные данные.')
+    throw new Error('РќРµ СѓРґР°Р»РѕСЃСЊ РїРѕР»СѓС‡РёС‚СЊ РїРѕРіРѕРґРЅС‹Рµ РґР°РЅРЅС‹Рµ.')
   }
 
   const data = await response.json()
+
   const precipitationProbability = findNearestValue(
     data?.hourly?.time,
     data?.hourly?.precipitation_probability,
