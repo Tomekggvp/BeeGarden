@@ -1,3 +1,4 @@
+import api from '../api/axios'
 import { supabase } from '../services/supabaseClient'
 
 export const LOCATION_WEATHER_EVENT = 'beegarden:location-weather-updated'
@@ -195,20 +196,13 @@ const findNearestValue = (times = [], values = [], targetTime) => {
 }
 
 export const fetchLocationWeather = async ({ latitude, longitude, signal } = {}) => {
-  const url = new URL('https://api.open-meteo.com/v1/forecast')
-  url.searchParams.set('latitude', String(latitude))
-  url.searchParams.set('longitude', String(longitude))
-  url.searchParams.set('current', 'temperature_2m,is_day,wind_speed_10m')
-  url.searchParams.set('hourly', 'precipitation_probability')
-  url.searchParams.set('forecast_hours', '24')
-  url.searchParams.set('timezone', 'auto')
-
-  const response = await fetch(url, { signal })
-  if (!response.ok) {
-    throw new Error('РќРµ СѓРґР°Р»РѕСЃСЊ РїРѕР»СѓС‡РёС‚СЊ РїРѕРіРѕРґРЅС‹Рµ РґР°РЅРЅС‹Рµ.')
-  }
-
-  const data = await response.json()
+  const { data } = await api.get('/api/weather/location', {
+    signal,
+    params: {
+      latitude,
+      longitude,
+    },
+  })
 
   const precipitationProbability = findNearestValue(
     data?.hourly?.time,
