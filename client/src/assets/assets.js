@@ -1,0 +1,17 @@
+import apiary from '../assets/apiary.png'
+import gras from '../assets/gras.jpg'
+
+export const assets = {
+    apiary,
+    gras
+}
+
+export const  queenBee = [
+    {name: 'Бакфаст'},
+    {name: 'Карника'},
+    {name: 'Карпатка'},
+    {name: 'Среднерусская'},
+    {name: 'Итальянка'},
+   
+]
+   
