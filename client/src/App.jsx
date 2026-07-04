@@ -228,7 +228,7 @@ function App() {
       <LeafyCorners />
       <ReminderScheduler session={session} />
       {!isAdminRoute && <TemporaryDrawer />}
-      {!isAdminRoute && openModalIds.length === 0 && (
+      {!isAdminRoute && (
         <GlobalNotificationsBell
           session={session}
           isWeatherCollapsed={isWeatherOverlayCollapsed}

@@ -34,6 +34,7 @@ const GlobalNotificationsBell = ({
   const [isMenuHidden, setIsMenuHidden] = useState(false)
   const [isModalHidden, setIsModalHidden] = useState(false)
   const [lastSeenByUser, setLastSeenByUser] = useState({})
+
   const isHidden = isMenuHidden || isModalHidden
   const lastSeenAt = userId
     ? (lastSeenByUser[userId] ?? readLastSeenAt(userId))
@@ -140,32 +141,34 @@ const GlobalNotificationsBell = ({
 
   const handleClose = () => setIsOpen(false)
 
-  if (!userId || isHidden) return null
+  if (!userId) return null
 
   return (
     <>
-      <div className="fixed right-4 top-4 z-[1200] flex items-center gap-2 sm:right-6 sm:top-6">
-        <button
-          type="button"
-          onClick={onToggleWeather}
-          className="inline-flex h-11 w-11 items-center justify-center rounded-full border border-[#f1d88a] bg-[#fffaf0]/95 text-[#8b4f00] shadow-sm backdrop-blur transition-colors hover:bg-[#fff4cc]"
-          aria-label={isWeatherCollapsed ? 'Развернуть погодный блок' : 'Свернуть погодный блок'}
-        >
-          {isWeatherCollapsed ? <PanelTopOpen size={20} /> : <PanelTopClose size={20} />}
-        </button>
+      {!isHidden && (
+        <div className="fixed right-4 top-4 z-[1200] flex items-center gap-2 sm:right-6 sm:top-6">
+          <button
+            type="button"
+            onClick={onToggleWeather}
+            className="inline-flex h-11 w-11 items-center justify-center rounded-full border border-[#f1d88a] bg-[#fffaf0]/95 text-[#8b4f00] shadow-sm backdrop-blur transition-colors hover:bg-[#fff4cc]"
+            aria-label={isWeatherCollapsed ? 'Развернуть погодный блок' : 'Свернуть погодный блок'}
+          >
+            {isWeatherCollapsed ? <PanelTopOpen size={20} /> : <PanelTopClose size={20} />}
+          </button>
 
-        <button
-          type="button"
-          onClick={handleOpen}
-          className="relative inline-flex h-11 w-11 items-center justify-center rounded-full border border-[#f1d88a] bg-[#fffaf0]/95 text-[#8b4f00] shadow-sm backdrop-blur transition-colors hover:bg-[#fff4cc]"
-          aria-label="Открыть историю уведомлений"
-        >
-          <Bell size={20} />
-          {hasNew && (
-            <span className="absolute right-2 top-2 h-2.5 w-2.5 rounded-full bg-emerald-500 ring-2 ring-[#fffaf0]" />
-          )}
-        </button>
-      </div>
+          <button
+            type="button"
+            onClick={handleOpen}
+            className="relative inline-flex h-11 w-11 items-center justify-center rounded-full border border-[#f1d88a] bg-[#fffaf0]/95 text-[#8b4f00] shadow-sm backdrop-blur transition-colors hover:bg-[#fff4cc]"
+            aria-label="Открыть историю уведомлений"
+          >
+            <Bell size={20} />
+            {hasNew && (
+              <span className="absolute right-2 top-2 h-2.5 w-2.5 rounded-full bg-emerald-500 ring-2 ring-[#fffaf0]" />
+            )}
+          </button>
+        </div>
+      )}
 
       <TaskNotificationsModal
         isOpen={isOpen}
