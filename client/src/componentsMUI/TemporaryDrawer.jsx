@@ -44,7 +44,7 @@ export default function TemporaryDrawer() {
         }
       } catch { /* Storage may be unavailable. */ }
     }
-    await supabase.auth.signOut()
+    await supabase.auth.signOut({ scope: 'local' })
     closeDrawer()
     navigate('/')
   }

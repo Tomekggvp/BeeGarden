@@ -1,5 +1,6 @@
 import axios from 'axios'
 import { supabase } from '../services/supabaseClient'
+import { installAuthInterceptors } from './auth'
 
 const fallbackApiBaseUrl = 'https://beegarden.onrender.com'
 
@@ -11,11 +12,6 @@ const api = axios.create({
   },
 })
 
-api.interceptors.request.use(async (config) => {
-  const { data: { session }, error } = await supabase.auth.getSession()
-  if (error) throw error
-  if (session?.access_token) config.headers.set('Authorization', `Bearer ${session.access_token}`)
-  return config
-})
+installAuthInterceptors(api, supabase.auth)
 
 export default api

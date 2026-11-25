@@ -80,6 +80,8 @@ function App() {
   const [session, setSession] = useState(null)
   const [loading, setLoading] = useState(true)
   const [hivesLoading, setHivesLoading] = useState(false)
+  const [hivesError, setHivesError] = useState('')
+  const [hivesReload, setHivesReload] = useState(0)
   const [allHives, setHives] = useState([])
   const [apiaryState, setApiaryState] = useState({ userId: null, rows: [], selectedId: '', loading: true, error: '' })
   const [openModalIds, setOpenModalIds] = useState([])
@@ -207,6 +209,7 @@ function App() {
 
       const cachedHives = readCachedHives(userId)
       setHives(cachedHives)
+      setHivesError('')
       setHivesLoading(cachedHives.length === 0)
 
       import('./api/axios').then(({ default: api }) => api.get('/api/hives', {
@@ -222,6 +225,7 @@ function App() {
         .catch((err) => {
           if (err.code !== 'ERR_CANCELED') {
             console.error(err)
+            if (!controller.signal.aborted) setHivesError('Не удалось обновить список ульев. Проверьте соединение и нажмите «Повторить». Сохранённые ульи не удалены.')
           }
         })
         .finally(() => {
@@ -232,7 +236,7 @@ function App() {
     })
 
     return () => controller.abort()
-  }, [session?.user?.id])
+  }, [session?.user?.id, session?.access_token, hivesReload])
 
   const updateHives = useCallback((updater) => {
     setHives((currentHives) => {
@@ -324,6 +328,8 @@ function App() {
                     apiaryControls={apiaryControls}
                     hives={hives}
                     hivesLoading={hivesLoading}
+                    hivesError={hivesError}
+                    onRetryHives={() => setHivesReload((value) => value + 1)}
                     onHivesChange={updateHives}
                   />
                 )}
@@ -337,7 +343,7 @@ function App() {
               <Route path="/treatment" element={<Treatment session={session} hives={hives} />} />
               <Route path="/pumping" element={<VetControl session={session} hives={hives} />} />
               <Route path="/charts" element={<Charts session={session} hives={hives} />} />
-              <Route path="*" element={<Home session={session} apiaryControls={apiaryControls} hives={hives} hivesLoading={hivesLoading} onHivesChange={updateHives} />} />
+              <Route path="*" element={<Home session={session} apiaryControls={apiaryControls} hives={hives} hivesLoading={hivesLoading} hivesError={hivesError} onRetryHives={() => setHivesReload((value) => value + 1)} onHivesChange={updateHives} />} />
             </Routes>
           </Suspense>
         </div>
