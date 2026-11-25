@@ -43,7 +43,7 @@ const DateSelect = ({ value, onChange }) => {
             },
             dialog: {
               sx: {
-                zIndex: 10001,
+                zIndex: 31000,
                 '& .MuiPaper-root': {
                   borderRadius: '8px',
                   border: '1px solid #f1d88a',
