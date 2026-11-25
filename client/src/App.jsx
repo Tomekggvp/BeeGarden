@@ -1,17 +1,17 @@
 import { lazy, Suspense, useCallback, useEffect, useState } from 'react'
 import { Route, Routes, useLocation } from 'react-router-dom'
 import { supabase } from './services/supabaseClient'
-import api from './api/axios'
 
-import TemporaryDrawer from './componentsMUI/TemporaryDrawer'
-import Home from './pages/Home'
 import AuthForm from './components/AuthForm'
 import LeafyCorners from './components/LeafyCorners'
-import ReminderScheduler from './components/ReminderScheduler'
-import GlobalNotificationsBell from './components/GlobalNotificationsBell'
-import LocationWeatherOverlay from './components/LocationWeatherOverlay'
+
+const TemporaryDrawer = lazy(() => import('./componentsMUI/TemporaryDrawer'))
+const ReminderScheduler = lazy(() => import('./components/ReminderScheduler'))
+const GlobalNotificationsBell = lazy(() => import('./components/GlobalNotificationsBell'))
+const LocationWeatherOverlay = lazy(() => import('./components/LocationWeatherOverlay'))
 
 const Calendar = lazy(() => import('./pages/Calendar'))
+const Home = lazy(() => import('./pages/Home'))
 const ChecksPerformed = lazy(() => import('./pages/ChecksPerformed'))
 const Location = lazy(() => import('./pages/Location'))
 const Notes = lazy(() => import('./pages/Notes'))
@@ -121,10 +121,14 @@ function App() {
       if (!isMounted) return
       setSession(session)
       setLoading(false)
+    }).catch((error) => {
+      console.error('Session initialization failed:', error.message)
+      if (isMounted) setLoading(false)
     })
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       setSession(session)
+      setLoading(false)
     })
 
     return () => {
@@ -150,11 +154,12 @@ function App() {
       setHives(cachedHives)
       setHivesLoading(cachedHives.length === 0)
 
-      api.get('/api/hives', {
+      import('./api/axios').then(({ default: api }) => api.get('/api/hives', {
         params: { user_id: userId },
         signal: controller.signal,
-      })
+      }))
         .then((res) => {
+          if (controller.signal.aborted) return
           const nextHives = normalizeHives(res.data)
           setHives(nextHives)
           writeCachedHives(userId, nextHives)
@@ -226,48 +231,53 @@ function App() {
   return (
     <>
       <LeafyCorners />
-      <ReminderScheduler session={session} />
-      {!isAdminRoute && <TemporaryDrawer />}
-      {!isAdminRoute && (
-        <GlobalNotificationsBell
-          session={session}
-          isWeatherCollapsed={isWeatherOverlayCollapsed}
-          onToggleWeather={handleToggleWeatherOverlay}
-        />
-      )}
-      {!isAdminRoute && openModalIds.length === 0 && (
-        <LocationWeatherOverlay
-          session={session}
-          isCollapsed={isWeatherOverlayCollapsed}
-        />
-      )}
+      <Suspense fallback={<PageFallback />}>
+        <ReminderScheduler key={session.user.id} session={session} />
+        {!isAdminRoute && <TemporaryDrawer />}
+        {!isAdminRoute && (
+          <GlobalNotificationsBell
+            key={session.user.id}
+            session={session}
+            isWeatherCollapsed={isWeatherOverlayCollapsed}
+            onToggleWeather={handleToggleWeatherOverlay}
+          />
+        )}
+        {!isAdminRoute && (
+          <LocationWeatherOverlay
+            key={session.user.id}
+            session={session}
+            isCollapsed={isWeatherOverlayCollapsed || openModalIds.length > 0}
+          />
+        )}
 
-      <div className="relative z-10">
-        <Suspense fallback={<PageFallback />}>
-          <Routes>
-            <Route
-              path="/"
-              element={(
-                <Home
-                  session={session}
-                  hives={hives}
-                  hivesLoading={hivesLoading}
-                  onHivesChange={updateHives}
-                />
-              )}
-            />
-            <Route path="/tasks" element={<Tasks session={session} hives={hives} />} />
-            <Route path="/bee-colonies" element={<BeeColonyGraphics session={session} hives={hives} />} />
-            <Route path="/calendar" element={<Calendar session={session} />} />
-            <Route path="/checks" element={<ChecksPerformed session={session} hives={hives} />} />
-            <Route path="/location" element={<Location session={session} />} />
-            <Route path="/notes" element={<Notes session={session} />} />
-            <Route path="/treatment" element={<Treatment session={session} hives={hives} />} />
-            <Route path="/pumping" element={<VetControl session={session} hives={hives} />} />
-            <Route path="/charts" element={<Charts session={session} hives={hives} />} />
-          </Routes>
-        </Suspense>
-      </div>
+        <div className="relative z-10">
+          <Suspense fallback={<PageFallback />}>
+            <Routes key={session.user.id}>
+              <Route
+                path="/"
+                element={(
+                  <Home
+                    session={session}
+                    hives={hives}
+                    hivesLoading={hivesLoading}
+                    onHivesChange={updateHives}
+                  />
+                )}
+              />
+              <Route path="/tasks" element={<Tasks session={session} hives={hives} />} />
+              <Route path="/bee-colonies" element={<BeeColonyGraphics session={session} hives={hives} />} />
+              <Route path="/calendar" element={<Calendar session={session} />} />
+              <Route path="/checks" element={<ChecksPerformed session={session} hives={hives} />} />
+              <Route path="/location" element={<Location session={session} />} />
+              <Route path="/notes" element={<Notes session={session} />} />
+              <Route path="/treatment" element={<Treatment session={session} hives={hives} />} />
+              <Route path="/pumping" element={<VetControl session={session} hives={hives} />} />
+              <Route path="/charts" element={<Charts session={session} hives={hives} />} />
+              <Route path="*" element={<Home session={session} hives={hives} hivesLoading={hivesLoading} onHivesChange={updateHives} />} />
+            </Routes>
+          </Suspense>
+        </div>
+      </Suspense>
     </>
   )
 }

@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { XIcon, Menu } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import { supabase } from '../services/supabaseClient'
+import { unsubscribeUserFromPush } from '../lib/pushNotifications'
 
 export const MENU_VISIBILITY_EVENT = 'beegarden:menu-visibility'
 
@@ -34,6 +35,15 @@ export default function TemporaryDrawer() {
   }
 
   const handleLogout = async () => {
+    const { data: { session } } = await supabase.auth.getSession()
+    if (session?.user?.id) {
+      await unsubscribeUserFromPush(session.user.id)
+      try {
+        for (const key of Object.keys(localStorage)) {
+          if (key.startsWith('beegarden:') && key.endsWith(session.user.id)) localStorage.removeItem(key)
+        }
+      } catch { /* Storage may be unavailable. */ }
+    }
     await supabase.auth.signOut()
     closeDrawer()
     navigate('/')

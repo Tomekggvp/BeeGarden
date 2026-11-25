@@ -132,7 +132,7 @@ const PumpingModal = ({ isOpen, onClose, hiveId, session, onPumpingSaved }) => {
       return
     }
 
-    if (Number.isNaN(volumeValue) || volumeValue <= 0) {
+    if (!Number.isFinite(volumeValue) || volumeValue <= 0) {
       setSuccessMessage('')
       setErrorMessage('Укажите корректный объем в литрах.')
       return

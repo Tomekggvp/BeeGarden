@@ -61,7 +61,13 @@ self.addEventListener('push', (event) => {
 self.addEventListener('notificationclick', (event) => {
   event.notification.close()
 
-  const targetUrl = new URL(event.notification.data?.url || '/', self.location.origin).href
+  let destination
+  try {
+    destination = new URL(event.notification.data?.url || '/', self.location.origin)
+  } catch {
+    destination = new URL('/', self.location.origin)
+  }
+  const targetUrl = destination.origin === self.location.origin ? destination.href : `${self.location.origin}/`
   const targetPathname = new URL(targetUrl).pathname
 
   event.waitUntil(

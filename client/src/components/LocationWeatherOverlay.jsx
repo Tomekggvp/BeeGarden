@@ -68,7 +68,7 @@ const LocationWeatherOverlay = ({ session, isCollapsed = false }) => {
 
   useEffect(() => {
     const handleLocationUpdate = (event) => {
-      const nextLocation = event?.detail?.latitude
+      const nextLocation = event?.detail?.latitude != null
         ? event.detail
         : readSavedLocation(userId)
 
@@ -113,7 +113,7 @@ const LocationWeatherOverlay = ({ session, isCollapsed = false }) => {
   }, [userId])
 
   useEffect(() => {
-    if (!savedLocation?.latitude || !savedLocation?.longitude) return undefined
+    if (savedLocation?.latitude == null || savedLocation?.longitude == null) return undefined
 
     const controller = new AbortController()
 
@@ -124,9 +124,9 @@ const LocationWeatherOverlay = ({ session, isCollapsed = false }) => {
           longitude: savedLocation.longitude,
           signal: controller.signal,
         })
-        setWeather(nextWeather)
+        if (!controller.signal.aborted) setWeather(nextWeather)
       } catch (error) {
-        if (error.name !== 'AbortError') {
+        if (!controller.signal.aborted) {
           console.error('Location weather load error:', error)
         }
       }

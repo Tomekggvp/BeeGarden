@@ -46,6 +46,7 @@ const AddBeehiveInfo = ({ isOpen, onClose, onConfirm, beehiveNum, setBeehiveNum,
           </label>
           <input
             type="text"
+            maxLength={64}
             value={beehiveNum}
             onChange={(event) => setBeehiveNum(event.target.value)}
             className="w-full rounded-lg border-2 border-[#f1d88a] bg-white px-4 py-4 text-2xl font-black text-[#2f2100] outline-none transition-all focus:border-[#f8b400] focus:ring-4 focus:ring-[#f8b400]/20"

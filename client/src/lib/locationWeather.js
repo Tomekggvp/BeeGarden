@@ -8,10 +8,11 @@ const USER_LOCATIONS_TABLE = 'user_locations'
 const buildStorageKey = (userId) => `beegarden:location-weather:${userId}`
 
 const normalizeLocation = (row) => {
+  if (!row || row.latitude === null || row.longitude === null) return null
   const latitude = Number(row?.latitude)
   const longitude = Number(row?.longitude)
 
-  if (!Number.isFinite(latitude) || !Number.isFinite(longitude)) {
+  if (!Number.isFinite(latitude) || !Number.isFinite(longitude) || Math.abs(latitude) > 90 || Math.abs(longitude) > 180) {
     return null
   }
 

@@ -14,25 +14,28 @@ const ReminderScheduler = ({ session }) => {
     if (!userId || !isPushSupported()) return undefined
 
     let isMounted = true
+    let syncing = false
+    let lastSyncAt = 0
+    let lastPermission = null
 
     const syncPushSubscription = async () => {
+      if (!isMounted || syncing) return
       const permission = getNotificationPermission()
-
-      if (permission === 'granted') {
-        try {
+      if (permission === lastPermission && Date.now() - lastSyncAt < 5 * 60_000) return
+      syncing = true
+      try {
+        if (permission === 'granted') {
           await subscribeUserToPush(userId)
-        } catch (error) {
-          console.error('Push sync error:', error)
         }
-        return
-      }
-
-      if (permission === 'denied') {
-        try {
+        if (permission === 'denied') {
           await unsubscribeUserFromPush(userId)
-        } catch (error) {
-          console.error('Push cleanup error:', error)
         }
+        lastSyncAt = Date.now()
+        lastPermission = permission
+      } catch (error) {
+        console.error('Push sync error:', error)
+      } finally {
+        syncing = false
       }
     }
 

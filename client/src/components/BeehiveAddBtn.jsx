@@ -73,7 +73,7 @@ const BeehiveAddBtn = ({ session, hives = [], hivesLoading = false, onHivesChang
     if (!hiveToDelete || !session?.user?.id) return
 
     try {
-      await api.delete(`/api/hives/${hiveToDelete}`, {
+      await api.delete(`/api/hives/${encodeURIComponent(hiveToDelete)}`, {
         params: { user_id: session.user.id },
       })
 

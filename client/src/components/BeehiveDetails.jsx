@@ -129,6 +129,9 @@ const BeehiveDetails = ({ isOpen, onClose, hiveId, session }) => {
               </label>
               <input
                 type="number"
+                min="0"
+                max="100000"
+                step="1"
                 value={details.swarms}
                 onChange={(event) => setDetails({ ...details, swarms: event.target.value })}
                 className="rounded-lg border-2 border-[#f1d88a] bg-white px-4 py-3 text-base font-bold text-[#2f2100] outline-none transition-all focus:border-[#f8b400] focus:ring-4 focus:ring-[#f8b400]/20"
@@ -149,6 +152,7 @@ const BeehiveDetails = ({ isOpen, onClose, hiveId, session }) => {
                 value={details.customNote}
                 onChange={(event) => setDetails({ ...details, customNote: event.target.value })}
                 rows={5}
+                maxLength={10000}
                 className="rounded-lg border-2 border-[#f1d88a] bg-white px-4 py-3 text-base font-medium text-[#2f2100] outline-none transition-all placeholder:text-[#b79d63] focus:border-[#f8b400] focus:ring-4 focus:ring-[#f8b400]/20"
                 placeholder="Введите любой текст: наблюдения, комментарий, напоминание"
               />

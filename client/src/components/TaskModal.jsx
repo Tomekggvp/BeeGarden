@@ -141,7 +141,7 @@ const TaskModal = ({ isOpen, onClose, hiveId, session }) => {
       }
 
       try {
-        const subscribed = await subscribeUserToPush(session.user.id, { forceRefresh: true })
+        const subscribed = await subscribeUserToPush(session.user.id)
 
         if (!subscribed) {
           setErrorMessage('Не удалось включить push-уведомления. Попробуйте еще раз.')
@@ -244,6 +244,7 @@ const TaskModal = ({ isOpen, onClose, hiveId, session }) => {
 
         <div className="mt-6 grid gap-3">
           <input
+            maxLength={10000}
             value={text}
             onChange={(event) => setText(event.target.value)}
             className="w-full rounded-lg border-2 border-[#f1d88a] bg-white px-4 py-3 font-semibold text-[#2f2100] outline-none transition-all focus:border-[#f8b400] focus:ring-4 focus:ring-[#f8b400]/20"
@@ -277,7 +278,7 @@ const TaskModal = ({ isOpen, onClose, hiveId, session }) => {
                   },
                   dialog: {
                     sx: {
-                      zIndex: 10001,
+                      zIndex: 31000,
                       '& .MuiPaper-root': {
                         borderRadius: '8px',
                         border: '1px solid #f1d88a',

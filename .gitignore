@@ -5,8 +5,11 @@ dist-ssr/
 *.local
 .env
 .DS_Store
+.playwright-mcp/
 *.sql
 supabase*.sql
+!supabase/
+!supabase/**/*.sql
 **/.env
 **/.env.*
 !**/.env.example

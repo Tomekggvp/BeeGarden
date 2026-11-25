@@ -5,15 +5,21 @@ const AuthForm = () => {
   const [loading, setLoading] = useState(false)
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
+  const [errorMessage, setErrorMessage] = useState('')
 
   const handleAuth = async (event) => {
     event.preventDefault()
+    if (loading) return
     setLoading(true)
-
-    const { error } = await supabase.auth.signInWithPassword({ email, password })
-
-    if (error) alert(error.message)
-    setLoading(false)
+    setErrorMessage('')
+    try {
+      const { error } = await supabase.auth.signInWithPassword({ email: email.trim(), password })
+      if (error) setErrorMessage('Не удалось войти. Проверьте email и пароль.')
+    } catch {
+      setErrorMessage('Не удалось связаться с сервером. Попробуйте ещё раз.')
+    } finally {
+      setLoading(false)
+    }
   }
 
   return (
@@ -33,6 +39,8 @@ const AuthForm = () => {
           <input
             className="w-full rounded-lg border-2 border-[#f1d88a] bg-white px-4 py-4 font-semibold text-[#2f2100] outline-none transition-all focus:border-[#f8b400] focus:ring-4 focus:ring-[#f8b400]/20"
             type="email"
+            autoComplete="username"
+            aria-label="Email"
             placeholder="Ваш Email"
             value={email}
             onChange={(event) => setEmail(event.target.value)}
@@ -41,11 +49,14 @@ const AuthForm = () => {
           <input
             className="w-full rounded-lg border-2 border-[#f1d88a] bg-white px-4 py-4 font-semibold text-[#2f2100] outline-none transition-all focus:border-[#f8b400] focus:ring-4 focus:ring-[#f8b400]/20"
             type="password"
+            autoComplete="current-password"
+            aria-label="Пароль"
             placeholder="Пароль"
             value={password}
             onChange={(event) => setPassword(event.target.value)}
             required
           />
+          {errorMessage && <p role="alert" className="text-sm font-semibold text-red-700">{errorMessage}</p>}
           <button
             type="submit"
             disabled={loading}
