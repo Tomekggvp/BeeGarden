@@ -99,7 +99,7 @@ export const createApp = ({ supabase, createUserClient, fetchWeather = fetch, se
         if (!pending) {
           pending = (async () => {
             const upstreamResponse = await fetchWeather(url, { signal: AbortSignal.timeout(8000), redirect: 'error' })
-            if (!upstreamResponse.ok) throw new Error('Weather provider unavailable')
+            if (!upstreamResponse.ok) throw new Error(`Weather provider HTTP ${upstreamResponse.status}`)
             const data = await upstreamResponse.json()
             const entry = { data, expiresAt: Date.now() + 5 * 60_000 }
             if (weatherCache.size >= 200) weatherCache.delete(weatherCache.keys().next().value)
@@ -112,7 +112,7 @@ export const createApp = ({ supabase, createUserClient, fetchWeather = fetch, se
       }
       return res.json(cached.data)
     } catch (error) {
-      console.error('Weather proxy error:', error)
+      console.error('Weather proxy error:', error.message)
       return res.status(502).json({ error: 'Failed to load weather data' })
     }
   })

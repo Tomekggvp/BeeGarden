@@ -1,5 +1,6 @@
 import api from '../api/axios'
 import { supabase } from '../services/supabaseClient'
+import { requestWeather } from './weatherRequest'
 
 export const LOCATION_WEATHER_EVENT = 'beegarden:location-weather-updated'
 
@@ -197,12 +198,16 @@ const findNearestValue = (times = [], values = [], targetTime) => {
 }
 
 export const fetchLocationWeather = async ({ latitude, longitude, signal } = {}) => {
-  const { data } = await api.get('/api/weather/location', {
+  const data = await requestWeather({ latitude, longitude, signal }, async () => {
+    const { data } = await api.get('/api/weather/location', {
     signal,
+    timeout: 10000,
     params: {
       latitude,
       longitude,
     },
+    })
+    return data
   })
 
   const precipitationProbability = findNearestValue(

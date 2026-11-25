@@ -3,7 +3,6 @@ import { CircleMarker, MapContainer, TileLayer, useMap, useMapEvents } from 'rea
 import { MapPin, Save } from 'lucide-react'
 import 'leaflet/dist/leaflet.css'
 import {
-  fetchLocationWeather,
   loadSavedLocation,
   readSavedLocation,
   saveLocationSelection,
@@ -117,7 +116,6 @@ const Location = ({ session }) => {
     setSuccessMessage('')
 
     try {
-      await fetchLocationWeather(selectedLocation)
       const nextSavedLocation = await saveLocationSelection(userId, selectedLocation)
       setSavedLocation(nextSavedLocation)
       setSelectedLocation(nextSavedLocation)

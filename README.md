@@ -22,7 +22,7 @@ anon/publishable ключ; service-role и VAPID private key хранятся т
 
 ## Проверки
 
-В `client`: `npm run lint`, `npm run build`, `npm audit`.
+В `client`: `npm test`, `npm run lint`, `npm run build`, `npm audit`.
 В `server`: `npm test`, `npm audit`.
 Эти проверки также запускаются в GitHub Actions.
 
