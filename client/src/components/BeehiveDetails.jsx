@@ -1,4 +1,5 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
+import { useLiveData } from '../lib/useLiveData'
 import dayjs from 'dayjs'
 import { X } from 'lucide-react'
 import ComboBox from '../componentsMUI/ComboBox'
@@ -8,6 +9,9 @@ import HiveTransfer from './HiveTransfer'
 import { parseSwarmCount } from '../lib/hiveDetails'
 
 const BeehiveDetails = ({ isOpen, onClose, hiveId, session, apiaries = [], currentApiaryId, onTransfer }) => {
+  const userId = session?.user?.id
+  const liveVersion = useLiveData(userId, ['beehive_details'], isOpen)
+  const dirtyFields = useRef(new Set())
   const [details, setDetails] = useState({
     breed: null,
     swarms: 0,
@@ -29,35 +33,40 @@ const BeehiveDetails = ({ isOpen, onClose, hiveId, session, apiaries = [], curre
   }, [isOpen])
 
   useEffect(() => {
-    if (isOpen && hiveId && session?.user?.id) {
+    let stopped = false
+    if (isOpen && hiveId && userId) {
       setLoading(true)
 
       supabase
         .from('beehive_details')
         .select('*')
         .eq('hive_id', String(hiveId))
-        .eq('user_id', session.user.id)
+        .eq('user_id', userId)
         .maybeSingle()
         .then(({ data, error }) => {
           if (error) throw error
-
-          if (data?.hive_id) {
-            setDetails({
-              breed: data.breed || null,
-              swarms: data.swarms ?? 0,
-              date: data.install_date ? dayjs(data.install_date) : null,
-              customNote: data.custom_note || '',
-            })
-          } else {
-            setDetails({ breed: null, swarms: 0, date: null, customNote: '' })
-          }
+          if (stopped) return
+          const remote = data?.hive_id ? {
+            breed: data.breed || null,
+            swarms: data.swarms ?? 0,
+            date: data.install_date ? dayjs(data.install_date) : null,
+            customNote: data.custom_note || '',
+          } : { breed: null, swarms: 0, date: null, customNote: '' }
+          setDetails((current) => Object.fromEntries(Object.entries(remote)
+            .map(([key, value]) => [key, dirtyFields.current.has(key) ? current[key] : value])))
         })
         .catch((err) => {
           console.error('Load error:', err.message)
         })
-        .finally(() => setLoading(false))
+        .finally(() => { if (!stopped) setLoading(false) })
     }
-  }, [isOpen, hiveId, session])
+    return () => { stopped = true }
+  }, [isOpen, hiveId, userId, liveVersion])
+
+  const updateField = (key, value) => {
+    dirtyFields.current.add(key)
+    setDetails((current) => ({ ...current, [key]: value }))
+  }
 
   if (!isOpen) return null
 
@@ -122,7 +131,7 @@ const BeehiveDetails = ({ isOpen, onClose, hiveId, session, apiaries = [], curre
           <div className="grid gap-5">
             <ComboBox
               value={details.breed}
-              onChange={(value) => setDetails({ ...details, breed: value })}
+              onChange={(value) => updateField('breed', value)}
             />
 
             <div className="flex flex-col">
@@ -137,14 +146,14 @@ const BeehiveDetails = ({ isOpen, onClose, hiveId, session, apiaries = [], curre
                 max="100000"
                 step="1"
                 value={details.swarms}
-                onChange={(event) => setDetails({ ...details, swarms: event.target.value })}
+                onChange={(event) => updateField('swarms', event.target.value)}
                 className="rounded-lg border-2 border-[#f1d88a] bg-white px-4 py-3 text-base font-bold text-[#2f2100] outline-none transition-all focus:border-[#f8b400] focus:ring-4 focus:ring-[#f8b400]/20"
               />
             </div>
 
             <DateSelect
               value={details.date}
-              onChange={(value) => setDetails({ ...details, date: value })}
+              onChange={(value) => updateField('date', value)}
             />
 
             <div className="flex flex-col">
@@ -153,7 +162,7 @@ const BeehiveDetails = ({ isOpen, onClose, hiveId, session, apiaries = [], curre
               </label>
               <textarea
                 value={details.customNote}
-                onChange={(event) => setDetails({ ...details, customNote: event.target.value })}
+                onChange={(event) => updateField('customNote', event.target.value)}
                 rows={5}
                 maxLength={10000}
                 className="rounded-lg border-2 border-[#f1d88a] bg-white px-4 py-3 text-base font-medium text-[#2f2100] outline-none transition-all placeholder:text-[#b79d63] focus:border-[#f8b400] focus:ring-4 focus:ring-[#f8b400]/20"

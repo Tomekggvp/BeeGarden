@@ -1,3 +1,4 @@
+import { useLiveData } from '../lib/useLiveData'
 import { useEffect, useState } from 'react'
 import { Bell, PanelTopClose, PanelTopOpen } from 'lucide-react'
 import { supabase } from '../services/supabaseClient'
@@ -28,6 +29,7 @@ const GlobalNotificationsBell = ({
   isWeatherCollapsed = false,
   onToggleWeather,
 }) => {
+  const liveVersion = useLiveData(session?.user?.id, ['task_notification_history'])
   const userId = session?.user?.id || ''
   const [isOpen, setIsOpen] = useState(false)
   const [hasNew, setHasNew] = useState(false)
@@ -43,6 +45,7 @@ const GlobalNotificationsBell = ({
   useEffect(() => {
     if (!userId) return
 
+    let stopped = false
     const loadHasNew = async () => {
       const seenAt = readLastSeenAt(userId)
 
@@ -52,6 +55,7 @@ const GlobalNotificationsBell = ({
         .eq('user_id', userId)
         .order('delivered_at', { ascending: false })
         .limit(1)
+      if (stopped) return
 
       if (error) {
         console.error('Load global notification state error:', error)
@@ -73,40 +77,8 @@ const GlobalNotificationsBell = ({
     }
 
     loadHasNew()
-  }, [userId, lastSeenAt])
-
-  useEffect(() => {
-    if (!userId) return
-
-    const channel = supabase
-      .channel(`task-notification-history-${userId}`)
-      .on('postgres_changes', {
-        event: 'INSERT',
-        schema: 'public',
-        table: 'task_notification_history',
-        filter: `user_id=eq.${userId}`,
-      }, (payload) => {
-        if (isOpen) return
-
-        const deliveredAt = payload?.new?.delivered_at
-        if (!deliveredAt || !lastSeenAt) {
-          setHasNew(true)
-          return
-        }
-
-        const isNew = new Date(deliveredAt).getTime() > new Date(lastSeenAt).getTime()
-        if (isNew) setHasNew(true)
-      })
-      .subscribe()
-
-    return () => {
-      try {
-        supabase.removeChannel(channel)
-      } catch (err) {
-        console.error('Global notifications unsubscribe error:', err)
-      }
-    }
-  }, [isOpen, lastSeenAt, userId])
+    return () => { stopped = true }
+  }, [userId, lastSeenAt, liveVersion])
 
   useEffect(() => {
     const handler = (event) => {

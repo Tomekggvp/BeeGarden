@@ -1,3 +1,4 @@
+import { useLiveData } from '../lib/useLiveData'
 import { useEffect, useMemo, useState } from 'react'
 import dayjs from 'dayjs'
 import 'dayjs/locale/ru'
@@ -447,6 +448,7 @@ const Charts = ({ session, hives }) => {
   const [monthValue, setMonthValue] = useState(() => formatMonthInputValue(new Date()))
   const [weekValue, setWeekValue] = useState(() => getWeekInputValue(new Date()))
   const [yearValue, setYearValue] = useState(() => String(new Date().getFullYear()))
+  const liveVersion = useLiveData(session?.user?.id, ['honey_pumpings'])
   const [allRecords, setRecords] = useState([])
   const records = useMemo(() => {
     const hiveIds = new Set(hives.map((hive) => String(hive.id)))
@@ -489,7 +491,7 @@ const Charts = ({ session, hives }) => {
     return () => {
       isMounted = false
     }
-  }, [session?.user?.id])
+  }, [session?.user?.id, liveVersion])
 
   const availableYears = useMemo(() => {
     const years = new Set([new Date().getFullYear()])

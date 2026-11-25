@@ -1,3 +1,4 @@
+import { useLiveData } from '../lib/useLiveData'
 import { useEffect, useState } from 'react'
 import { Bell, Clock3, Trash2, X } from 'lucide-react'
 import { supabase } from '../services/supabaseClient'
@@ -15,6 +16,7 @@ const formatDateTime = (value) => {
 }
 
 const TaskNotificationsModal = ({ isOpen, onClose, session }) => {
+  const liveVersion = useLiveData(session?.user?.id, ['task_notification_history'], isOpen)
   const [notifications, setNotifications] = useState([])
   const [isLoading, setIsLoading] = useState(false)
   const [deletingId, setDeletingId] = useState(null)
@@ -36,6 +38,7 @@ const TaskNotificationsModal = ({ isOpen, onClose, session }) => {
   useEffect(() => {
     if (!isOpen || !session?.user?.id) return
 
+    let stopped = false
     const fetchNotificationHistory = async () => {
       setIsLoading(true)
 
@@ -44,6 +47,7 @@ const TaskNotificationsModal = ({ isOpen, onClose, session }) => {
         .select('*')
         .eq('user_id', session.user.id)
         .order('delivered_at', { ascending: false })
+      if (stopped) return
 
       setIsLoading(false)
 
@@ -58,7 +62,8 @@ const TaskNotificationsModal = ({ isOpen, onClose, session }) => {
     }
 
     fetchNotificationHistory()
-  }, [isOpen, session?.user?.id])
+    return () => { stopped = true }
+  }, [isOpen, session?.user?.id, liveVersion])
 
   const handleDelete = async (id) => {
     if (!session?.user?.id || deletingId || isDeletingAll) return

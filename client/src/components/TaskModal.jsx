@@ -1,3 +1,4 @@
+import { useLiveData } from '../lib/useLiveData'
 import { useEffect, useMemo, useState } from 'react'
 import dayjs from 'dayjs'
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs'
@@ -64,6 +65,7 @@ const sortTasks = (tasks = []) =>
   })
 
 const TaskModal = ({ isOpen, onClose, hiveId, session }) => {
+  const liveVersion = useLiveData(session?.user?.id, ['tasks'], isOpen)
   const [tasks, setTasks] = useState([])
   const [text, setText] = useState('')
   const [reminderAt, setReminderAt] = useState(null)
@@ -88,12 +90,14 @@ const TaskModal = ({ isOpen, onClose, hiveId, session }) => {
   useEffect(() => {
     if (!isOpen || !hiveId || !session?.user?.id) return
 
+    let stopped = false
     const fetchTasks = async () => {
       const { data, error } = await supabase
         .from('tasks')
         .select('*')
         .eq('hive_id', String(hiveId))
         .eq('user_id', session.user.id)
+      if (stopped) return
 
       if (error) {
         console.error('Load tasks error:', error)
@@ -106,7 +110,8 @@ const TaskModal = ({ isOpen, onClose, hiveId, session }) => {
     }
 
     fetchTasks()
-  }, [isOpen, hiveId, session?.user?.id])
+    return () => { stopped = true }
+  }, [isOpen, hiveId, session?.user?.id, liveVersion])
 
   const handleAdd = async () => {
     const taskText = text.trim()
@@ -191,7 +196,7 @@ const TaskModal = ({ isOpen, onClose, hiveId, session }) => {
       return
     }
 
-    setTasks((currentTasks) => sortTasks([...currentTasks, data]))
+    setTasks((currentTasks) => sortTasks([...currentTasks.filter((task) => task.id !== data.id), data]))
     setText('')
     setReminderAt(null)
   }

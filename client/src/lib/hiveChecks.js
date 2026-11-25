@@ -1,3 +1,5 @@
+import { subscribeDataChange } from './liveEvents'
+import { readAllPages } from './pagination'
 import { supabase } from '../services/supabaseClient'
 
 export const EMPTY_HIVE_CHECKS = Object.freeze({
@@ -51,34 +53,28 @@ export const subscribeHiveChecks = (userId, handlers = {}) => {
   const safeUserId = String(userId || '').trim()
   if (!safeUserId) return { unsubscribe: () => {} }
 
-  const { onUpsert, onDelete } = handlers
-
-  const channel = supabase
-    .channel(`hive-checks-${safeUserId}`)
-    .on('postgres_changes', {
-      event: '*',
-      schema: 'public',
-      table: 'hive_checks',
-      filter: `user_id=eq.${safeUserId}`,
-    }, (payload) => {
-      if (payload.eventType === 'DELETE') {
-        onDelete?.(payload.old)
-        return
+  let stopped = false
+  let revision = 0
+  let previous = new Map()
+  const refresh = async () => {
+    const current = ++revision
+    try {
+      const rows = await readAllPages((from, to) => supabase.from('hive_checks')
+        .select('*').eq('user_id', safeUserId).order('hive_id').range(from, to))
+      if (stopped || current !== revision) return
+      const next = new Map(rows.map((row) => [String(row.hive_id), row]))
+      for (const [id, row] of next) {
+        if (JSON.stringify(previous.get(id)) !== JSON.stringify(row)) handlers.onUpsert?.(row)
       }
-
-      onUpsert?.(payload.new)
-    })
-    .subscribe()
-
-  return {
-    unsubscribe: () => {
-      try {
-        supabase.removeChannel(channel)
-      } catch (err) {
-        console.error('Hive checks realtime unsubscribe error:', err)
-      }
-    },
+      for (const [id, row] of previous) if (!next.has(id)) handlers.onDelete?.(row)
+      previous = next
+    } catch (error) {
+      if (!stopped) console.error('Hive checks live refresh failed:', error.message)
+    }
   }
+  const unsubscribe = subscribeDataChange(safeUserId, ['hive_checks'], refresh)
+  refresh()
+  return { unsubscribe: () => { stopped = true; unsubscribe() } }
 }
 
 const toDbPayload = (userId, hiveId, state) => ({

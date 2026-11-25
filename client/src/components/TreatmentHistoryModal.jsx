@@ -1,3 +1,4 @@
+import { useLiveData } from '../lib/useLiveData'
 import { useEffect, useState } from 'react'
 import { CalendarDays, Pill, Syringe, Trash2, X } from 'lucide-react'
 import { supabase } from '../services/supabaseClient'
@@ -22,6 +23,7 @@ const getTreatmentPeriod = (record) => {
 }
 
 const TreatmentHistoryModal = ({ isOpen, onClose, hiveId, session, refreshKey = 0 }) => {
+  const liveVersion = useLiveData(session?.user?.id, ['treatments'], isOpen)
   const [records, setRecords] = useState([])
   const [isLoading, setIsLoading] = useState(false)
   const [deletingId, setDeletingId] = useState(null)
@@ -42,6 +44,7 @@ const TreatmentHistoryModal = ({ isOpen, onClose, hiveId, session, refreshKey = 
   useEffect(() => {
     if (!isOpen || !hiveId || !session?.user?.id) return
 
+    let stopped = false
     const fetchTreatmentHistory = async () => {
       setIsLoading(true)
 
@@ -52,6 +55,7 @@ const TreatmentHistoryModal = ({ isOpen, onClose, hiveId, session, refreshKey = 
         .eq('user_id', session.user.id)
         .order('start_date', { ascending: false })
         .order('created_at', { ascending: false })
+      if (stopped) return
 
       setIsLoading(false)
 
@@ -66,7 +70,8 @@ const TreatmentHistoryModal = ({ isOpen, onClose, hiveId, session, refreshKey = 
     }
 
     fetchTreatmentHistory()
-  }, [hiveId, isOpen, refreshKey, session?.user?.id])
+    return () => { stopped = true }
+  }, [hiveId, isOpen, refreshKey, session?.user?.id, liveVersion])
 
   const handleDelete = async (recordId) => {
     if (!session?.user?.id || deletingId) return

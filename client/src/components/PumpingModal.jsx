@@ -1,3 +1,4 @@
+import { useLiveData } from '../lib/useLiveData'
 import { useEffect, useState } from 'react'
 import { Droplets, Plus, X } from 'lucide-react'
 import { clearHiveCheckRequirement } from '../lib/hiveChecks'
@@ -47,6 +48,7 @@ const formatVolume = (value) => {
 
 const PumpingModal = ({ isOpen, onClose, hiveId, session, onPumpingSaved }) => {
   const [form, setForm] = useState(createInitialFormState)
+  const liveVersion = useLiveData(session?.user?.id, ['honey_pumpings'], isOpen)
   const [records, setRecords] = useState([])
   const [isLoading, setIsLoading] = useState(false)
   const [isSaving, setIsSaving] = useState(false)
@@ -68,6 +70,7 @@ const PumpingModal = ({ isOpen, onClose, hiveId, session, onPumpingSaved }) => {
   useEffect(() => {
     if (!isOpen || !hiveId || !session?.user?.id) return
 
+    let stopped = false
     const fetchPumpings = async () => {
       setIsLoading(true)
 
@@ -78,6 +81,7 @@ const PumpingModal = ({ isOpen, onClose, hiveId, session, onPumpingSaved }) => {
         .eq('user_id', session.user.id)
         .order('pumping_date', { ascending: false })
         .order('created_at', { ascending: false })
+      if (stopped) return
 
       setIsLoading(false)
 
@@ -92,7 +96,8 @@ const PumpingModal = ({ isOpen, onClose, hiveId, session, onPumpingSaved }) => {
     }
 
     fetchPumpings()
-  }, [hiveId, isOpen, session?.user?.id])
+    return () => { stopped = true }
+  }, [hiveId, isOpen, session?.user?.id, liveVersion])
 
   const updateField = (field) => (event) => {
     const nextValue = event.target.value
@@ -169,7 +174,7 @@ const PumpingModal = ({ isOpen, onClose, hiveId, session, onPumpingSaved }) => {
       console.error('Clear pumping check flag error:', clearError)
     }
 
-    setRecords((currentRecords) => [data, ...currentRecords])
+    setRecords((currentRecords) => [data, ...currentRecords.filter((record) => record.id !== data.id)])
     setForm(createInitialFormState())
     setErrorMessage('')
     setSuccessMessage(`Откачка для улья №${hiveId} сохранена.`)

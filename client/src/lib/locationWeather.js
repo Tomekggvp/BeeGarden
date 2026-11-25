@@ -1,3 +1,4 @@
+import { subscribeDataChange } from './liveEvents'
 import api from '../api/axios'
 import { supabase } from '../services/supabaseClient'
 import { requestWeather } from './weatherRequest'
@@ -53,16 +54,20 @@ export const saveLocationSelection = async (userId, location, apiaryId) => {
 
 export const subscribeLocationSelection = (userId, handlers = {}, apiaryId) => {
   if (!userId || !apiaryId) return { unsubscribe() {} }
-  const channel = supabase.channel(`apiary-location-${apiaryId}`)
-    .on('postgres_changes', { event: '*', schema: 'public', table: 'apiaries', filter: `id=eq.${apiaryId}` }, (payload) => {
-      const row = payload.eventType === 'DELETE' ? payload.old : payload.new
-      if (row?.id !== apiaryId) return
-      const location = payload.eventType === 'DELETE' ? null : normalizeLocation(row, userId, apiaryId)
-      cacheLocation(userId, apiaryId, location)
+  let stopped = false
+  let revision = 0
+  const unsubscribe = subscribeDataChange(userId, ['apiaries', 'user_locations'], async () => {
+    const current = ++revision
+    try {
+      const location = await loadSavedLocation(userId, apiaryId)
+      if (stopped || revision !== current) return
       if (location) handlers.onUpsert?.(location)
-      else handlers.onDelete?.(row)
-    }).subscribe()
-  return { unsubscribe: () => { supabase.removeChannel(channel) } }
+      else handlers.onDelete?.()
+    } catch (error) {
+      if (!stopped) console.error('Location live refresh failed:', error.message)
+    }
+  })
+  return { unsubscribe: () => { stopped = true; unsubscribe() } }
 }
 
 const findNearestValue = (times = [], values = [], targetTime) => {

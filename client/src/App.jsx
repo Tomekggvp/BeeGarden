@@ -2,6 +2,9 @@ import { lazy, Suspense, useCallback, useEffect, useState } from 'react'
 import { Route, Routes, useLocation } from 'react-router-dom'
 import { supabase } from './services/supabaseClient'
 
+import AccountLiveSync from './components/AccountLiveSync'
+import { useLiveData } from './lib/useLiveData'
+
 import AuthForm from './components/AuthForm'
 import LeafyCorners from './components/LeafyCorners'
 import { readApiaryCache, writeApiaryCache } from './lib/apiaryCache'
@@ -94,6 +97,9 @@ function App() {
     }
   })
 
+  const liveHives = useLiveData(session?.user?.id, ['hives'])
+  const liveApiaries = useLiveData(session?.user?.id, ['apiaries'])
+
   const apiaries = apiaryState.userId === session?.user?.id ? apiaryState.rows : []
   const activeApiary = apiaries.find((item) => item.id === apiaryState.selectedId)
     || apiaries.find((item) => item.is_default) || apiaries[0] || null
@@ -125,7 +131,7 @@ function App() {
       }
     })
     return () => { cancelled = true }
-  }, [session?.user?.id, session?.access_token, hivesReload])
+  }, [session?.user?.id, session?.access_token, hivesReload, liveApiaries])
 
   useEffect(() => {
     if (!session?.user?.id) return undefined
@@ -256,7 +262,7 @@ function App() {
     })
 
     return () => controller.abort()
-  }, [session?.user?.id, session?.access_token, hivesReload])
+  }, [session?.user?.id, session?.access_token, hivesReload, liveHives])
 
   const updateHives = useCallback((updater) => {
     setHives((currentHives) => {
@@ -311,6 +317,7 @@ function App() {
     <>
       <LeafyCorners />
       <Suspense fallback={<PageFallback />}>
+        <AccountLiveSync key={session.user.id} userId={session.user.id} />
         <ReminderScheduler key={`reminders:${session.user.id}`} session={session} />
         {!isAdminRoute && <TemporaryDrawer />}
         {import.meta.env.DEV && import.meta.env.VITE_APIARY_PREVIEW === '1' && (

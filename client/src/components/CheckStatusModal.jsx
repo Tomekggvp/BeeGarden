@@ -99,6 +99,12 @@ const CheckStatusModal = ({ isOpen, onClose, hiveId, session, onSaved }) => {
         // Не перетираем изменения пользователя до сохранения
         setForm((currentForm) => (isDirty ? currentForm : nextState))
       },
+      onDelete: (row) => {
+        if (String(row?.hive_id) !== String(hiveId)) return
+        setLoadedState(defaultLoadedState)
+        setForm((currentForm) => (isDirty ? currentForm : defaultLoadedState))
+        setRealtimeMessage('Обновлено на другом устройстве.')
+      },
     })
 
     return () => subscription.unsubscribe()

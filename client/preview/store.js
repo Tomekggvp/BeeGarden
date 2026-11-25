@@ -30,6 +30,7 @@ export const emit = (table, eventType, row, old = {}) => {
   persist()
   queueMicrotask(() => {
     for (const channel of channels) for (const listener of channel.listeners) {
+      if (listener.type === 'broadcast') { listener.callback({ payload: { table } }); continue }
       if (listener.config.table !== table) continue
       const filter = listener.config.filter?.split('=eq.')
       if (filter && String(row[filter[0]] ?? old[filter[0]]) !== filter[1]) continue
@@ -41,8 +42,8 @@ export const emit = (table, eventType, row, old = {}) => {
 export const channel = () => {
   const result = {
     listeners: [],
-    on(_type, config, callback) { result.listeners.push({ config, callback }); return result },
-    subscribe() { channels.add(result); return result },
+    on(type, config, callback) { result.listeners.push({ type, config, callback }); return result },
+    subscribe(callback) { channels.add(result); queueMicrotask(() => callback?.('SUBSCRIBED')); return result },
   }
   return result
 }

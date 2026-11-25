@@ -1,27 +1,12 @@
 import { useEffect, useMemo, useState } from 'react'
 import BgHome from '../components/BgHome'
 import TreatmentModal from '../components/TreatmentModal'
-import { applyHiveCheckRowToMap, fetchHiveChecksMap, subscribeHiveChecks } from '../lib/hiveChecks'
+import { applyHiveCheckRowToMap, subscribeHiveChecks } from '../lib/hiveChecks'
 
 const Treatment = ({ session, hives }) => {
   const [selectedHiveId, setSelectedHiveId] = useState(null)
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [checkMap, setCheckMap] = useState({})
-
-  useEffect(() => {
-    if (!session?.user?.id) return
-
-    const loadCheckMap = async () => {
-      try {
-        const nextMap = await fetchHiveChecksMap(session.user.id)
-        setCheckMap(nextMap)
-      } catch (error) {
-        console.error('Load treatment check flags error:', error)
-      }
-    }
-
-    loadCheckMap()
-  }, [session?.user?.id])
 
   useEffect(() => {
     if (!session?.user?.id) return
