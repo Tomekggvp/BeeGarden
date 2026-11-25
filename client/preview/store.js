@@ -91,6 +91,7 @@ export const query = (table) => {
     limit(count) { range = [0, count - 1]; return chain },
     single() { single = true; return chain },
     maybeSingle() { single = true; return chain },
+    abortSignal() { return chain },
     insert(value) { operation = 'insert'; payload = value; return chain },
     upsert(value, options) { operation = 'upsert'; payload = value; conflict = options?.onConflict; return chain },
     update(value) { operation = 'update'; payload = value; return chain },

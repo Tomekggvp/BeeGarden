@@ -97,7 +97,7 @@ const BeehiveAddBtn = ({ session, hives = [], hivesLoading = false, hivesError, 
     <main className="min-h-[calc(100vh-56px)] px-4 pb-10 sm:px-6 lg:px-8">
       <section className="mx-auto w-full max-w-6xl pt-3 sm:pt-6">
         <ApiaryPanel key={activeApiary?.id} {...apiaryControls} />
-        {hivesError && <div role="alert" className="mb-4 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm font-bold text-red-800"><p>{hivesError}</p><button type="button" onClick={onRetryHives} className="mt-2 min-h-12 rounded-lg border border-red-300 px-4 py-3">Повторить</button></div>}
+        {hivesError && <div role={hives.length ? 'status' : 'alert'} className="mb-4 rounded-lg border border-[#f1d88a] bg-[#fffaf0] px-4 py-3 text-sm font-bold text-[#7a5a1a]"><p>{hives.length ? 'Показаны сохранённые ульи. Обновим автоматически при восстановлении связи.' : hivesError}</p><button type="button" onClick={onRetryHives} className="mt-2 min-h-12 rounded-lg border border-[#f1d88a] px-4 py-3">Обновить сейчас</button></div>}
         {transferMessage && <p role="status" className="mb-4 rounded-lg border border-green-200 bg-green-50 px-4 py-3 text-sm font-bold text-green-800">{transferMessage}</p>}
         <div className="mb-6 grid gap-5 lg:grid-cols-[1fr_auto] lg:items-end">
           <div>

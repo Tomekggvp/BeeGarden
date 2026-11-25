@@ -4,6 +4,7 @@ import { supabase } from './services/supabaseClient'
 
 import AuthForm from './components/AuthForm'
 import LeafyCorners from './components/LeafyCorners'
+import { readApiaryCache, writeApiaryCache } from './lib/apiaryCache'
 
 const ApiaryPanel = lazy(() => import('./components/ApiaryPanel'))
 const TemporaryDrawer = lazy(() => import('./componentsMUI/TemporaryDrawer'))
@@ -105,21 +106,43 @@ function App() {
     if (!userId) return undefined
     Promise.resolve().then(async () => {
       if (cancelled) return
-      setApiaryState({ userId, rows: [], selectedId: '', loading: true, error: '' })
+      const cached = readApiaryCache(userId)
+      setApiaryState((current) => ({ userId,
+        rows: current.userId === userId && current.rows.length ? current.rows : cached,
+        selectedId: current.userId === userId ? current.selectedId : '', loading: true, error: '', stale: false }))
       try {
         const { listApiaries } = await import('./lib/apiaries')
         const rows = await listApiaries(userId)
         if (cancelled) return
+        writeApiaryCache(userId, rows)
         let selectedId = ''
         try { selectedId = localStorage.getItem(`beegarden:active-apiary:${userId}`) || '' } catch { /* Optional preference. */ }
         setApiaryState({ userId, rows, selectedId, loading: false, error: '' })
       } catch (error) {
         console.error('Load apiaries failed:', error.message)
-        if (!cancelled) setApiaryState({ userId, rows: [], selectedId: '', loading: false, error: 'Не удалось загрузить пасеки. Обновите страницу и попробуйте снова.' })
+        if (!cancelled) setApiaryState((current) => ({ ...current, userId, loading: false, stale: true,
+          error: current.rows.length ? '' : 'Не удалось загрузить пасеки. Повторяем автоматически...' }))
       }
     })
     return () => { cancelled = true }
-  }, [session?.user?.id])
+  }, [session?.user?.id, session?.access_token, hivesReload])
+
+  useEffect(() => {
+    if (!session?.user?.id) return undefined
+    const retry = () => setHivesReload((value) => value + 1)
+    const timer = hivesError || apiaryState.error || apiaryState.stale ? window.setTimeout(retry, 15000) : null
+    window.addEventListener('online', retry)
+    window.addEventListener('focus', retry)
+    return () => {
+      if (timer) window.clearTimeout(timer)
+      window.removeEventListener('online', retry)
+      window.removeEventListener('focus', retry)
+    }
+  }, [session?.user?.id, hivesError, apiaryState.error, apiaryState.stale])
+
+  useEffect(() => {
+    if (apiaryState.userId && apiaryState.rows.length) writeApiaryCache(apiaryState.userId, apiaryState.rows)
+  }, [apiaryState.userId, apiaryState.rows])
 
   const selectApiary = (id) => {
     if (!apiaries.some((item) => item.id === id)) return
@@ -212,20 +235,17 @@ function App() {
       setHivesError('')
       setHivesLoading(cachedHives.length === 0)
 
-      import('./api/axios').then(({ default: api }) => api.get('/api/hives', {
-        params: { user_id: userId },
-        signal: controller.signal,
-      }))
-        .then((res) => {
+      import('./lib/hiveData').then(({ loadUserHives }) => loadUserHives(supabase, userId, controller.signal))
+        .then((data) => {
           if (controller.signal.aborted) return
-          const nextHives = normalizeHives(res.data)
+          const nextHives = normalizeHives(data)
           setHives(nextHives)
           writeCachedHives(userId, nextHives)
         })
         .catch((err) => {
-          if (err.code !== 'ERR_CANCELED') {
+          if (!controller.signal.aborted && err.code !== 'ERR_CANCELED') {
             console.error(err)
-            if (!controller.signal.aborted) setHivesError('Не удалось обновить список ульев. Проверьте соединение и нажмите «Повторить». Сохранённые ульи не удалены.')
+            setHivesError('Не удалось загрузить свежие данные. Повторяем автоматически.')
           }
         })
         .finally(() => {
