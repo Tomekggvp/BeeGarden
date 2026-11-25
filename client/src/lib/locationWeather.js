@@ -3,180 +3,66 @@ import { supabase } from '../services/supabaseClient'
 import { requestWeather } from './weatherRequest'
 
 export const LOCATION_WEATHER_EVENT = 'beegarden:location-weather-updated'
+const buildStorageKey = (userId, apiaryId) => `beegarden:location-weather:${apiaryId}:${userId}`
 
-const USER_LOCATIONS_TABLE = 'user_locations'
-
-const buildStorageKey = (userId) => `beegarden:location-weather:${userId}`
-
-const normalizeLocation = (row) => {
-  if (!row || row.latitude === null || row.longitude === null) return null
-  const latitude = Number(row?.latitude)
-  const longitude = Number(row?.longitude)
-
-  if (!Number.isFinite(latitude) || !Number.isFinite(longitude) || Math.abs(latitude) > 90 || Math.abs(longitude) > 180) {
-    return null
-  }
-
-  return {
-    latitude,
-    longitude,
-    savedAt: row?.saved_at || row?.savedAt || row?.updated_at || null,
-  }
+const normalizeLocation = (row, userId, apiaryId) => {
+  if (!row || row.latitude == null || row.longitude == null) return null
+  const latitude = Number(row.latitude)
+  const longitude = Number(row.longitude)
+  if (!Number.isFinite(latitude) || !Number.isFinite(longitude) || Math.abs(latitude) > 90 || Math.abs(longitude) > 180) return null
+  return { latitude, longitude, apiaryId, userId, savedAt: row.saved_at || row.savedAt || row.updated_at || null }
 }
 
-const withLocationHint = (error) => {
-  if (!error) return error
-
-  if (error.code === 'PGRST205' || /user_locations/i.test(String(error.message || ''))) {
-    return Object.assign(new Error(
-      "РќРµ РЅР°Р№РґРµРЅР° С‚Р°Р±Р»РёС†Р° 'public.user_locations' РІ Supabase. Р’С‹РїРѕР»РЅРёС‚Рµ SQL РёР· С„Р°Р№Р»Р° supabase_user_locations.sql Рё РѕР±РЅРѕРІРёС‚Рµ PostgREST schema cache РІ РЅР°СЃС‚СЂРѕР№РєР°С… API."
-    ), { originalError: error })
-  }
-
-  return error
-}
-
-const writeCachedLocation = (userId, location) => {
-  if (!userId || !location) return
-
+const cacheLocation = (userId, apiaryId, location) => {
   try {
-    localStorage.setItem(buildStorageKey(userId), JSON.stringify(location))
-  } catch {
-    // ignore cache write errors
-  }
+    const key = buildStorageKey(userId, apiaryId)
+    if (location) localStorage.setItem(key, JSON.stringify(location))
+    else localStorage.removeItem(key)
+  } catch { /* Optional cache. */ }
 }
 
-const removeCachedLocation = (userId) => {
-  if (!userId) return
-
-  try {
-    localStorage.removeItem(buildStorageKey(userId))
-  } catch {
-    // ignore cache removal errors
-  }
+export const readSavedLocation = (userId, apiaryId) => {
+  if (!userId || !apiaryId) return null
+  try { return normalizeLocation(JSON.parse(localStorage.getItem(buildStorageKey(userId, apiaryId))), userId, apiaryId) }
+  catch { return null }
 }
 
-const emitLocationUpdate = (location) => {
-  if (typeof window === 'undefined') return
-
-  window.dispatchEvent(new CustomEvent(LOCATION_WEATHER_EVENT, { detail: location }))
+export const loadSavedLocation = async (userId, apiaryId) => {
+  if (!userId || !apiaryId) return null
+  const { data, error } = await supabase.from('apiaries')
+    .select('latitude,longitude,saved_at,updated_at').eq('user_id', userId).eq('id', apiaryId).maybeSingle()
+  if (error) throw error
+  const location = normalizeLocation(data, userId, apiaryId)
+  cacheLocation(userId, apiaryId, location)
+  return location
 }
 
-const upsertLocationRow = async (userId, location) => {
-  const timestamp = new Date().toISOString()
-  const payload = {
-    user_id: userId,
-    latitude: Number(location.latitude),
-    longitude: Number(location.longitude),
-    saved_at: location.savedAt || timestamp,
-    updated_at: timestamp,
-  }
-
-  const { data, error } = await supabase
-    .from(USER_LOCATIONS_TABLE)
-    .upsert(payload, { onConflict: 'user_id' })
-    .select('latitude, longitude, saved_at, updated_at')
-    .single()
-
-  if (error) throw withLocationHint(error)
-
-  return normalizeLocation(data) || normalizeLocation(payload)
+export const saveLocationSelection = async (userId, location, apiaryId) => {
+  if (!userId || !apiaryId) throw new Error('Сначала выберите пасеку.')
+  if (!normalizeLocation(location, userId, apiaryId)) throw new Error('Выберите корректную точку на карте.')
+  const now = new Date().toISOString()
+  const { data, error } = await supabase.from('apiaries')
+    .update({ latitude: Number(location.latitude), longitude: Number(location.longitude), saved_at: now, updated_at: now })
+    .eq('user_id', userId).eq('id', apiaryId).select('latitude,longitude,saved_at,updated_at').single()
+  if (error) throw error
+  const saved = normalizeLocation(data, userId, apiaryId)
+  cacheLocation(userId, apiaryId, saved)
+  window.dispatchEvent(new CustomEvent(LOCATION_WEATHER_EVENT, { detail: saved }))
+  return saved
 }
 
-export const readSavedLocation = (userId) => {
-  if (!userId) return null
-
-  try {
-    const raw = localStorage.getItem(buildStorageKey(userId))
-    if (!raw) return null
-
-    return normalizeLocation(JSON.parse(raw))
-  } catch {
-    return null
-  }
-}
-
-export const loadSavedLocation = async (userId) => {
-  if (!userId) return null
-
-  const { data, error } = await supabase
-    .from(USER_LOCATIONS_TABLE)
-    .select('latitude, longitude, saved_at, updated_at')
-    .eq('user_id', userId)
-    .maybeSingle()
-
-  if (error) throw withLocationHint(error)
-
-  const normalizedLocation = normalizeLocation(data)
-
-  if (normalizedLocation) {
-    writeCachedLocation(userId, normalizedLocation)
-    return normalizedLocation
-  }
-
-  const cachedLocation = readSavedLocation(userId)
-  if (!cachedLocation) {
-    removeCachedLocation(userId)
-    return null
-  }
-
-  try {
-    const migratedLocation = await upsertLocationRow(userId, cachedLocation)
-    writeCachedLocation(userId, migratedLocation)
-    return migratedLocation
-  } catch (migrationError) {
-    console.error('Location migration error:', migrationError)
-    return cachedLocation
-  }
-}
-
-export const saveLocationSelection = async (userId, location) => {
-  if (!userId) return null
-
-  const normalizedLocation = await upsertLocationRow(userId, location)
-  writeCachedLocation(userId, normalizedLocation)
-  emitLocationUpdate(normalizedLocation)
-
-  return normalizedLocation
-}
-
-export const subscribeLocationSelection = (userId, handlers = {}) => {
-  const safeUserId = String(userId || '').trim()
-  if (!safeUserId) return { unsubscribe: () => {} }
-
-  const { onUpsert, onDelete } = handlers
-
-  const channel = supabase
-    .channel(`user-locations-${safeUserId}`)
-    .on('postgres_changes', {
-      event: '*',
-      schema: 'public',
-      table: USER_LOCATIONS_TABLE,
-      filter: `user_id=eq.${safeUserId}`,
-    }, (payload) => {
-      if (payload.eventType === 'DELETE') {
-        removeCachedLocation(safeUserId)
-        onDelete?.(payload.old)
-        return
-      }
-
-      const normalizedLocation = normalizeLocation(payload.new)
-      if (!normalizedLocation) return
-
-      writeCachedLocation(safeUserId, normalizedLocation)
-      onUpsert?.(normalizedLocation)
-    })
-    .subscribe()
-
-  return {
-    unsubscribe: () => {
-      try {
-        supabase.removeChannel(channel)
-      } catch (err) {
-        console.error('Location realtime unsubscribe error:', err)
-      }
-    },
-  }
+export const subscribeLocationSelection = (userId, handlers = {}, apiaryId) => {
+  if (!userId || !apiaryId) return { unsubscribe() {} }
+  const channel = supabase.channel(`apiary-location-${apiaryId}`)
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'apiaries', filter: `id=eq.${apiaryId}` }, (payload) => {
+      const row = payload.eventType === 'DELETE' ? payload.old : payload.new
+      if (row?.id !== apiaryId) return
+      const location = payload.eventType === 'DELETE' ? null : normalizeLocation(row, userId, apiaryId)
+      cacheLocation(userId, apiaryId, location)
+      if (location) handlers.onUpsert?.(location)
+      else handlers.onDelete?.(row)
+    }).subscribe()
+  return { unsubscribe: () => { supabase.removeChannel(channel) } }
 }
 
 const findNearestValue = (times = [], values = [], targetTime) => {

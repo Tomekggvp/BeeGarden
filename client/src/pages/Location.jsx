@@ -53,9 +53,10 @@ const RecenterMap = ({ center }) => {
   return null
 }
 
-const Location = ({ session }) => {
+const Location = ({ session, apiary, onLocationSaved }) => {
   const userId = session?.user?.id || ''
-  const cachedLocation = readSavedLocation(userId)
+  const apiaryId = apiary?.id
+  const cachedLocation = readSavedLocation(userId, apiaryId)
   const [selectedLocation, setSelectedLocation] = useState(cachedLocation || DEFAULT_CENTER)
   const [savedLocation, setSavedLocation] = useState(cachedLocation)
   const [isSaving, setIsSaving] = useState(false)
@@ -63,17 +64,17 @@ const Location = ({ session }) => {
   const [successMessage, setSuccessMessage] = useState('')
 
   useEffect(() => {
-    const nextCachedLocation = readSavedLocation(userId)
+    const nextCachedLocation = readSavedLocation(userId, apiaryId)
     setSelectedLocation(nextCachedLocation || DEFAULT_CENTER)
     setSavedLocation(nextCachedLocation)
     setErrorMessage('')
     setSuccessMessage('')
 
-    if (!userId) return undefined
+    if (!userId || !apiaryId) return undefined
 
     let isMounted = true
 
-    loadSavedLocation(userId)
+    loadSavedLocation(userId, apiaryId)
       .then((nextSavedLocation) => {
         if (!isMounted || !nextSavedLocation) return
 
@@ -89,10 +90,10 @@ const Location = ({ session }) => {
     return () => {
       isMounted = false
     }
-  }, [userId])
+  }, [userId, apiaryId])
 
   useEffect(() => {
-    if (!userId) return undefined
+    if (!userId || !apiaryId) return undefined
 
     const subscription = subscribeLocationSelection(userId, {
       onUpsert: (nextLocation) => {
@@ -103,23 +104,24 @@ const Location = ({ session }) => {
         setSavedLocation(null)
         setSelectedLocation(DEFAULT_CENTER)
       },
-    })
+    }, apiaryId)
 
     return () => subscription.unsubscribe()
-  }, [userId])
+  }, [userId, apiaryId])
 
   const handleSave = async () => {
-    if (!userId || !selectedLocation) return
+    if (!userId || !apiaryId || !selectedLocation) return
 
     setIsSaving(true)
     setErrorMessage('')
     setSuccessMessage('')
 
     try {
-      const nextSavedLocation = await saveLocationSelection(userId, selectedLocation)
+      const nextSavedLocation = await saveLocationSelection(userId, selectedLocation, apiaryId)
+      onLocationSaved?.(nextSavedLocation)
       setSavedLocation(nextSavedLocation)
       setSelectedLocation(nextSavedLocation)
-      setSuccessMessage('Локация сохранена. Погода и время теперь подтягиваются для этого пользователя с любого устройства.')
+      setSuccessMessage(`Локация пасеки «${apiary.name}» сохранена. Погода будет показана для этой точки.`)
     } catch (error) {
       console.error('Save location error:', error)
       setErrorMessage(error.message || 'Не удалось сохранить локацию.')
@@ -127,6 +129,8 @@ const Location = ({ session }) => {
       setIsSaving(false)
     }
   }
+
+  if (!apiary) return <p className="p-6 text-center font-bold">Сначала создайте или выберите пасеку.</p>
 
   return (
     <main className="min-h-[calc(100vh-56px)] px-4 pb-10 pt-4 sm:px-6 lg:px-8">
@@ -136,11 +140,11 @@ const Location = ({ session }) => {
             <span className="h-2 w-2 rounded-full bg-[#f8b400]"></span>
             BeeGarden
           </div>
-          <h1 className="font-['Tenor_Sans'] text-5xl leading-none text-[#2f2100] sm:text-7xl">
-            Локация
+          <h1 className="break-words font-['Tenor_Sans'] text-5xl leading-none text-[#2f2100] sm:text-7xl">
+            Локация: {apiary.name}
           </h1>
           <p className="mt-3 max-w-2xl text-base font-semibold text-[#6f5a26]">
-            Нажмите на карту, выберите точку пасеки и сохраните её. После этого сверху на всех страницах будут показаны местное время, температура, ветер и вероятность осадков.
+            Нажмите на карту, выберите точку пасеки и сохраните её. Эта точка и её погода относятся только к выбранной пасеке. При переезде сохраните новую точку.
           </p>
         </div>
 
@@ -188,7 +192,7 @@ const Location = ({ session }) => {
           <MapContainer
             center={[selectedLocation.latitude, selectedLocation.longitude]}
             zoom={8}
-            className="h-[calc(100vh-260px)] min-h-[420px] w-full"
+            className="h-[55dvh] min-h-[300px] w-full sm:h-[calc(100vh-260px)] sm:min-h-[420px]"
             scrollWheelZoom
           >
             <TileLayer

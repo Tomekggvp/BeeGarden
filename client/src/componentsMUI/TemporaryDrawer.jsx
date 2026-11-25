@@ -12,7 +12,7 @@ const menuItems = [
   { label: 'Откачка', path: '/pumping' },
   { label: 'Графики', path: '/charts' },
   { label: 'Проверки', path: '/checks' },
-  { label: 'Выбор локации', path: '/location' },
+  { label: 'Локация пасеки', path: '/location' },
   { label: 'Добавить улей', path: '/' },
 ]
 

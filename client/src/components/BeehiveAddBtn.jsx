@@ -4,16 +4,19 @@ import AddBeehiveInfo from './AddBeehiveInfo.jsx'
 import BgHome from './BgHome'
 import ConfirmDeleteModal from './ConfirmDeleteModal.jsx'
 import api from '../api/axios'
+import ApiaryPanel from './ApiaryPanel'
 
 const BeehiveDetails = lazy(() => import('./BeehiveDetails'))
 
-const BeehiveAddBtn = ({ session, hives = [], hivesLoading = false, onHivesChange }) => {
+const BeehiveAddBtn = ({ session, hives = [], hivesLoading = false, onHivesChange, apiaryControls }) => {
+  const { activeApiary, apiaries } = apiaryControls
   const [isAddModalOpen, setIsAddModalOpen] = useState(false)
   const [beehiveNum, setBeehiveNum] = useState('')
   const [isSaving, setIsSaving] = useState(false)
 
   const [isDetailsOpen, setIsDetailsOpen] = useState(false)
   const [selectedHiveId, setSelectedHiveId] = useState(null)
+  const [transferMessage, setTransferMessage] = useState('')
 
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false)
   const [hiveToDelete, setHiveToDelete] = useState(null)
@@ -27,7 +30,7 @@ const BeehiveAddBtn = ({ session, hives = [], hivesLoading = false, onHivesChang
   const handleConfirm = async () => {
     const hiveNumber = beehiveNum.trim()
 
-    if (!hiveNumber || !session?.user?.id || isSaving) return
+    if (!hiveNumber || !session?.user?.id || !activeApiary || isSaving) return
 
     if (hives.find((item) => String(item.id) === hiveNumber)) {
       alert('Улей с таким номером уже существует!')
@@ -40,11 +43,13 @@ const BeehiveAddBtn = ({ session, hives = [], hivesLoading = false, onHivesChang
       const res = await api.post('/api/hives', {
         user_id: session.user.id,
         hive_number: hiveNumber,
+        apiary_id: activeApiary.id,
       })
 
       const newHive = {
         id: res.data.hive_number,
         number: res.data.hive_number,
+        apiaryId: res.data.apiary_id || activeApiary.id,
       }
 
       updateHives((currentHives) => {
@@ -91,16 +96,19 @@ const BeehiveAddBtn = ({ session, hives = [], hivesLoading = false, onHivesChang
   return (
     <main className="min-h-[calc(100vh-56px)] px-4 pb-10 sm:px-6 lg:px-8">
       <section className="mx-auto w-full max-w-6xl pt-3 sm:pt-6">
+        <ApiaryPanel key={activeApiary?.id} {...apiaryControls} />
+        {transferMessage && <p role="status" className="mb-4 rounded-lg border border-green-200 bg-green-50 px-4 py-3 text-sm font-bold text-green-800">{transferMessage}</p>}
         <div className="mb-6 grid gap-5 lg:grid-cols-[1fr_auto] lg:items-end">
           <div>
-            <div className="mb-3 inline-flex items-center gap-2 rounded-lg border border-[#f8b400]/35 bg-[#fffaf0] px-3 py-2 text-xs font-black uppercase tracking-[0.22em] text-[#9a5a00] shadow-sm">
+            <div className="mb-3 hidden items-center gap-2 rounded-lg border border-[#f8b400]/35 bg-[#fffaf0] px-3 py-2 text-xs font-black uppercase tracking-[0.22em] text-[#9a5a00] shadow-sm sm:inline-flex">
               <span className="h-2 w-2 rounded-full bg-[#f8b400]"></span>
               BeeGarden
             </div>
-            <h1 className="max-w-3xl font-['Tenor_Sans'] text-5xl leading-none text-[#2f2100] sm:text-7xl">
-              Пасека
+            <h1 className="max-w-3xl break-words font-['Tenor_Sans'] text-4xl leading-none text-[#2f2100] sm:text-7xl">
+              <span className="sm:hidden">Ульи</span>
+              <span className="hidden sm:inline">{activeApiary?.name || 'Пасека'}</span>
             </h1>
-            <p className="mt-3 max-w-xl text-base font-semibold text-[#6f5a26]">
+            <p className="mt-3 hidden max-w-xl text-base font-semibold text-[#6f5a26] sm:block">
               Лёгкая карта ульев для быстрых проверок и записей.
             </p>
           </div>
@@ -118,6 +126,7 @@ const BeehiveAddBtn = ({ session, hives = [], hivesLoading = false, onHivesChang
             <button
               type="button"
               onClick={() => setIsAddModalOpen(true)}
+              disabled={!activeApiary || apiaryControls.loading}
               className="inline-flex items-center gap-2 rounded-lg bg-[#f8b400] px-5 py-4 font-black text-[#2b1a00] shadow-[0_10px_22px_rgba(248,180,0,0.24)] transition-all hover:-translate-y-0.5 hover:bg-[#ffd24a] active:translate-y-0"
             >
               <Plus size={20} />
@@ -126,7 +135,7 @@ const BeehiveAddBtn = ({ session, hives = [], hivesLoading = false, onHivesChang
           </div>
         </div>
 
-        {hivesLoading && hives.length === 0 ? (
+        {(hivesLoading || apiaryControls.loading) && hives.length === 0 ? (
           <div className="apiary-shell flex min-h-[360px] items-center justify-center rounded-lg border border-[#f1d88a] bg-[#fffaf0] p-8 shadow-sm">
             <div className="flex flex-col items-center gap-3 text-center">
               <div className="h-10 w-10 rounded-full border-4 border-[#ffd24a] border-t-[#b77900] animate-spin"></div>
@@ -175,6 +184,16 @@ const BeehiveAddBtn = ({ session, hives = [], hivesLoading = false, onHivesChang
             }}
             hiveId={selectedHiveId}
             session={session}
+            apiaries={apiaries}
+            currentApiaryId={activeApiary.id}
+            onTransfer={async (destinationId) => {
+              const { data } = await api.patch(`/api/hives/${encodeURIComponent(selectedHiveId)}/apiary`, { apiary_id: destinationId })
+              updateHives((current) => current.map((item) => String(item.id) === String(selectedHiveId)
+                ? { ...item, apiaryId: data.apiary_id } : item))
+              setTransferMessage(`Улей №${selectedHiveId} перенесён в пасеку «${apiaries.find((item) => item.id === destinationId)?.name || ''}». Номер сохранён.`)
+              setIsDetailsOpen(false)
+              setSelectedHiveId(null)
+            }}
           />
         </Suspense>
       )}

@@ -5,6 +5,7 @@
   "type": "module",
   "scripts": {
     "test": "node --test",
+    "preview:apiaries": "node scripts/preview-apiaries.js",
     "dev": "vite",
     "build": "vite build",
     "lint": "eslint .",

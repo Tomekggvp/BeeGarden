@@ -28,11 +28,12 @@ const formatClock = (timezone) => {
   }).format(new Date())
 }
 
-const LocationWeatherOverlay = ({ session, isCollapsed = false }) => {
+const LocationWeatherOverlay = ({ session, apiary, isCollapsed = false }) => {
   const userId = session?.user?.id || ''
+  const apiaryId = apiary?.id
   const [savedLocationState, setSavedLocationState] = useState(() => ({
     userId,
-    location: readSavedLocation(userId),
+    location: readSavedLocation(userId, apiaryId),
   }))
   const [weather, setWeather] = useState(null)
   const [isMenuHidden, setIsMenuHidden] = useState(false)
@@ -41,14 +42,14 @@ const LocationWeatherOverlay = ({ session, isCollapsed = false }) => {
   const isHidden = isMenuHidden || isModalHidden
   const savedLocation = savedLocationState.userId === userId
     ? savedLocationState.location
-    : readSavedLocation(userId)
+    : readSavedLocation(userId, apiaryId)
 
   useEffect(() => {
-    if (!userId) return undefined
+    if (!userId || !apiaryId) return undefined
 
     let isMounted = true
 
-    loadSavedLocation(userId)
+    loadSavedLocation(userId, apiaryId)
       .then((nextSavedLocation) => {
         if (!isMounted) return
         setSavedLocationState({
@@ -64,13 +65,14 @@ const LocationWeatherOverlay = ({ session, isCollapsed = false }) => {
     return () => {
       isMounted = false
     }
-  }, [userId])
+  }, [userId, apiaryId])
 
   useEffect(() => {
     const handleLocationUpdate = (event) => {
+      if (event.detail?.apiaryId !== apiaryId || event.detail?.userId !== userId) return
       const nextLocation = event?.detail?.latitude != null
         ? event.detail
-        : readSavedLocation(userId)
+        : readSavedLocation(userId, apiaryId)
 
       setSavedLocationState({
         userId,
@@ -79,10 +81,10 @@ const LocationWeatherOverlay = ({ session, isCollapsed = false }) => {
     }
 
     const handleStorage = (event) => {
-      if (event.key && userId && event.key.includes(`beegarden:location-weather:${userId}`)) {
+      if (event.key && userId && event.key.includes(`beegarden:location-weather:${apiaryId}:${userId}`)) {
         setSavedLocationState({
           userId,
-          location: readSavedLocation(userId),
+          location: readSavedLocation(userId, apiaryId),
         })
       }
     }
@@ -100,7 +102,7 @@ const LocationWeatherOverlay = ({ session, isCollapsed = false }) => {
           location: null,
         })
       },
-    })
+    }, apiaryId)
 
     window.addEventListener(LOCATION_WEATHER_EVENT, handleLocationUpdate)
     window.addEventListener('storage', handleStorage)
@@ -110,7 +112,7 @@ const LocationWeatherOverlay = ({ session, isCollapsed = false }) => {
       window.removeEventListener(LOCATION_WEATHER_EVENT, handleLocationUpdate)
       window.removeEventListener('storage', handleStorage)
     }
-  }, [userId])
+  }, [userId, apiaryId])
 
   useEffect(() => {
     if (savedLocation?.latitude == null || savedLocation?.longitude == null) return undefined
@@ -124,7 +126,7 @@ const LocationWeatherOverlay = ({ session, isCollapsed = false }) => {
           longitude: savedLocation.longitude,
           signal: controller.signal,
         })
-        if (!controller.signal.aborted) setWeather(nextWeather)
+        if (!controller.signal.aborted) setWeather({ ...nextWeather, locationKey: `${savedLocation.latitude},${savedLocation.longitude}` })
       } catch (error) {
         if (!controller.signal.aborted) {
           console.error('Location weather load error:', error)
@@ -164,14 +166,15 @@ const LocationWeatherOverlay = ({ session, isCollapsed = false }) => {
     return () => window.removeEventListener('beegarden:modal-visibility', handler)
   }, [])
 
-  const visibleWeather = savedLocation ? weather : null
+  const visibleWeather = savedLocation && weather?.locationKey === `${savedLocation.latitude},${savedLocation.longitude}` ? weather : null
   const currentTime = formatClock(visibleWeather?.timezone)
 
   if (!userId || isHidden || isCollapsed || !savedLocation || !visibleWeather) return null
 
   return (
-    <div className="pointer-events-none fixed left-1/2 top-4 z-[1100] w-[min(92vw,720px)] -translate-x-1/2">
+    <div className="pointer-events-none relative z-10 mx-auto my-3 w-[min(92vw,720px)]">
       <div className="rounded-lg border border-[#f1d88a] bg-[#fffaf0]/96 px-4 py-3 shadow-[0_16px_36px_rgba(93,58,0,0.18)] backdrop-blur">
+        <p className="mb-2 truncate text-center text-xs font-black text-[#7a5a1a]">{apiary?.name}</p>
         <div className="flex flex-wrap items-center justify-center gap-x-5 gap-y-3 text-center text-[#2f2100]">
           <div className="min-w-[110px]">
             <p className="text-[11px] font-black uppercase tracking-[0.18em] text-[#9a5a00]">

@@ -5,6 +5,7 @@ import { supabase } from './services/supabaseClient'
 import AuthForm from './components/AuthForm'
 import LeafyCorners from './components/LeafyCorners'
 
+const ApiaryPanel = lazy(() => import('./components/ApiaryPanel'))
 const TemporaryDrawer = lazy(() => import('./componentsMUI/TemporaryDrawer'))
 const ReminderScheduler = lazy(() => import('./components/ReminderScheduler'))
 const GlobalNotificationsBell = lazy(() => import('./components/GlobalNotificationsBell'))
@@ -21,13 +22,14 @@ const BeeColonyGraphics = lazy(() => import('./pages/BeeColonyGraphics'))
 const VetControl = lazy(() => import('./pages/VetControl'))
 const Charts = lazy(() => import('./pages/Charts'))
 
-const HIVES_CACHE_PREFIX = 'beegarden:hives:'
+const HIVES_CACHE_PREFIX = 'beegarden:hives:v2:'
 const WEATHER_OVERLAY_COLLAPSED_KEY = 'beegarden:weather-overlay:collapsed'
 
 const normalizeHives = (hives = []) =>
   hives.map((hive) => ({
     id: hive.hive_number ?? hive.id,
     number: hive.hive_number ?? hive.number,
+    apiaryId: hive.apiary_id ?? hive.apiaryId,
   }))
 
 const getHivesCacheKey = (userId) => `${HIVES_CACHE_PREFIX}${userId}`
@@ -78,7 +80,8 @@ function App() {
   const [session, setSession] = useState(null)
   const [loading, setLoading] = useState(true)
   const [hivesLoading, setHivesLoading] = useState(false)
-  const [hives, setHives] = useState([])
+  const [allHives, setHives] = useState([])
+  const [apiaryState, setApiaryState] = useState({ userId: null, rows: [], selectedId: '', loading: true, error: '' })
   const [openModalIds, setOpenModalIds] = useState([])
   const [isWeatherOverlayCollapsed, setIsWeatherOverlayCollapsed] = useState(() => {
     try {
@@ -87,6 +90,58 @@ function App() {
       return false
     }
   })
+
+  const apiaries = apiaryState.userId === session?.user?.id ? apiaryState.rows : []
+  const activeApiary = apiaries.find((item) => item.id === apiaryState.selectedId)
+    || apiaries.find((item) => item.is_default) || apiaries[0] || null
+  const hives = activeApiary ? allHives.filter((hive) => hive.apiaryId === activeApiary.id
+    || (!hive.apiaryId && activeApiary.is_default)) : []
+
+  useEffect(() => {
+    const userId = session?.user?.id
+    let cancelled = false
+    if (!userId) return undefined
+    Promise.resolve().then(async () => {
+      if (cancelled) return
+      setApiaryState({ userId, rows: [], selectedId: '', loading: true, error: '' })
+      try {
+        const { listApiaries } = await import('./lib/apiaries')
+        const rows = await listApiaries(userId)
+        if (cancelled) return
+        let selectedId = ''
+        try { selectedId = localStorage.getItem(`beegarden:active-apiary:${userId}`) || '' } catch { /* Optional preference. */ }
+        setApiaryState({ userId, rows, selectedId, loading: false, error: '' })
+      } catch (error) {
+        console.error('Load apiaries failed:', error.message)
+        if (!cancelled) setApiaryState({ userId, rows: [], selectedId: '', loading: false, error: 'Не удалось загрузить пасеки. Обновите страницу и попробуйте снова.' })
+      }
+    })
+    return () => { cancelled = true }
+  }, [session?.user?.id])
+
+  const selectApiary = (id) => {
+    if (!apiaries.some((item) => item.id === id)) return
+    setApiaryState((current) => ({ ...current, selectedId: id }))
+    try { localStorage.setItem(`beegarden:active-apiary:${session.user.id}`, id) } catch { /* Optional preference. */ }
+  }
+
+  const handleSaveApiary = async (name, id) => {
+    const { saveApiary } = await import('./lib/apiaries')
+    const saved = await saveApiary(session.user.id, name, id)
+    setApiaryState((current) => ({ ...current,
+      rows: id ? current.rows.map((item) => item.id === id ? saved : item) : [...current.rows, saved],
+      selectedId: saved.id,
+    }))
+    try { localStorage.setItem(`beegarden:active-apiary:${session.user.id}`, saved.id) } catch { /* Optional preference. */ }
+  }
+
+  const handleLocationSaved = (location) => {
+    setApiaryState((current) => ({ ...current, rows: current.rows.map((item) => item.id === location.apiaryId
+      ? { ...item, latitude: location.latitude, longitude: location.longitude, saved_at: location.savedAt } : item) }))
+  }
+
+  const apiaryControls = { apiaries, activeApiary, onSelect: selectApiary, onSave: handleSaveApiary,
+    loading: apiaryState.loading, error: apiaryState.error }
 
   const location = useLocation()
   const isAdminRoute = location.pathname.startsWith('/admin')
@@ -232,11 +287,17 @@ function App() {
     <>
       <LeafyCorners />
       <Suspense fallback={<PageFallback />}>
-        <ReminderScheduler key={session.user.id} session={session} />
+        <ReminderScheduler key={`reminders:${session.user.id}`} session={session} />
         {!isAdminRoute && <TemporaryDrawer />}
+        {import.meta.env.DEV && import.meta.env.VITE_APIARY_PREVIEW === '1' && (
+          <div className="relative mx-auto max-w-6xl rounded-lg bg-[#2f2100] px-4 py-3 text-sm font-bold text-white">
+            Локальная проверка: тестовые данные сохраняются только в этом браузере. Рабочая база не изменяется.
+            <button type="button" className="ml-3 underline" onClick={async () => { const { resetPreview } = await import('../preview/store'); resetPreview() }}>Сбросить тестовые данные</button>
+          </div>
+        )}
         {!isAdminRoute && (
           <GlobalNotificationsBell
-            key={session.user.id}
+            key={`notifications:${session.user.id}`}
             session={session}
             isWeatherCollapsed={isWeatherOverlayCollapsed}
             onToggleWeather={handleToggleWeatherOverlay}
@@ -244,20 +305,23 @@ function App() {
         )}
         {!isAdminRoute && (
           <LocationWeatherOverlay
-            key={session.user.id}
+            key={`${session.user.id}:${activeApiary?.id}`}
             session={session}
+            apiary={activeApiary}
             isCollapsed={isWeatherOverlayCollapsed || openModalIds.length > 0}
           />
         )}
 
         <div className="relative z-10">
+          {location.pathname !== '/' && <div className="mx-auto max-w-6xl px-4 pt-4"><ApiaryPanel key={activeApiary?.id} {...apiaryControls} compact /></div>}
           <Suspense fallback={<PageFallback />}>
-            <Routes key={session.user.id}>
+            <Routes key={`${session.user.id}:${activeApiary?.id}`}>
               <Route
                 path="/"
                 element={(
                   <Home
                     session={session}
+                    apiaryControls={apiaryControls}
                     hives={hives}
                     hivesLoading={hivesLoading}
                     onHivesChange={updateHives}
@@ -268,12 +332,12 @@ function App() {
               <Route path="/bee-colonies" element={<BeeColonyGraphics session={session} hives={hives} />} />
               <Route path="/calendar" element={<Calendar session={session} />} />
               <Route path="/checks" element={<ChecksPerformed session={session} hives={hives} />} />
-              <Route path="/location" element={<Location session={session} />} />
+              <Route path="/location" element={<Location session={session} apiary={activeApiary} onLocationSaved={handleLocationSaved} />} />
               <Route path="/notes" element={<Notes session={session} />} />
               <Route path="/treatment" element={<Treatment session={session} hives={hives} />} />
               <Route path="/pumping" element={<VetControl session={session} hives={hives} />} />
               <Route path="/charts" element={<Charts session={session} hives={hives} />} />
-              <Route path="*" element={<Home session={session} hives={hives} hivesLoading={hivesLoading} onHivesChange={updateHives} />} />
+              <Route path="*" element={<Home session={session} apiaryControls={apiaryControls} hives={hives} hivesLoading={hivesLoading} onHivesChange={updateHives} />} />
             </Routes>
           </Suspense>
         </div>

@@ -4,8 +4,9 @@ import { X } from 'lucide-react'
 import ComboBox from '../componentsMUI/ComboBox'
 import DateSelect from '../componentsMUI/DateSelect'
 import { supabase } from '../services/supabaseClient'
+import HiveTransfer from './HiveTransfer'
 
-const BeehiveDetails = ({ isOpen, onClose, hiveId, session }) => {
+const BeehiveDetails = ({ isOpen, onClose, hiveId, session, apiaries = [], currentApiaryId, onTransfer }) => {
   const [details, setDetails] = useState({
     breed: null,
     swarms: '',
@@ -167,6 +168,7 @@ const BeehiveDetails = ({ isOpen, onClose, hiveId, session }) => {
             {loading ? 'Сохранение...' : 'Сохранить данные'}
           </button>
         </form>
+        <HiveTransfer apiaries={apiaries} currentApiaryId={currentApiaryId} onTransfer={onTransfer} />
       </div>
     </div>
   )

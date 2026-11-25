@@ -447,7 +447,11 @@ const Charts = ({ session, hives }) => {
   const [monthValue, setMonthValue] = useState(() => formatMonthInputValue(new Date()))
   const [weekValue, setWeekValue] = useState(() => getWeekInputValue(new Date()))
   const [yearValue, setYearValue] = useState(() => String(new Date().getFullYear()))
-  const [records, setRecords] = useState([])
+  const [allRecords, setRecords] = useState([])
+  const records = useMemo(() => {
+    const hiveIds = new Set(hives.map((hive) => String(hive.id)))
+    return allRecords.filter((record) => hiveIds.has(String(record.hive_id)))
+  }, [allRecords, hives])
   const [isLoading, setIsLoading] = useState(false)
   const [errorMessage, setErrorMessage] = useState('')
 
