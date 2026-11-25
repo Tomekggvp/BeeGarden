@@ -3,7 +3,7 @@ import cors from 'cors'
 import webpush from 'web-push'
 import helmet from 'helmet'
 import { rateLimit } from 'express-rate-limit'
-import { authenticate, safeSecretEqual, validHiveNumber, validSubscription, validPushEndpoint } from './security.js'
+import { authenticate, safeSecretEqual, validHiveNumber, validSubscription, validPushEndpoint, validApiaryId } from './security.js'
 
 export const createApp = ({ supabase, createUserClient, fetchWeather = fetch, sendNotification = webpush.sendNotification.bind(webpush) }) => {
 
@@ -246,15 +246,17 @@ export const createApp = ({ supabase, createUserClient, fetchWeather = fetch, se
       return res.json(cachedHives)
     }
 
-    const { data, error } = await req.db
-      .from('hives')
-      .select('hive_number,created_at')
-      .eq('user_id', userId)
-      .order('created_at', { ascending: true })
-
-    if (error) return res.status(500).json({ error: 'Database operation failed' })
-
-    const hives = data || []
+    const hives = []
+    for (let offset = 0; ; offset += 500) {
+      const { data, error } = await req.db.from('hives')
+        .select('hive_number,created_at,apiary_id')
+        .eq('user_id', userId)
+        .order('created_at', { ascending: true }).order('hive_number')
+        .range(offset, offset + 499)
+      if (error) return res.status(500).json({ error: 'Database operation failed' })
+      hives.push(...(data || []))
+      if (!data || data.length < 500) break
+    }
     setCachedHives(userId, hives)
     res.set('X-Cache', 'MISS')
     res.json(hives)
@@ -268,14 +270,44 @@ export const createApp = ({ supabase, createUserClient, fetchWeather = fetch, se
       return res.status(400).json({ error: 'user_id and hive_number are required' })
     }
 
+    const apiaryId = req.body.apiary_id
+    if (apiaryId !== undefined) {
+      if (!validApiaryId(apiaryId)) return res.status(400).json({ error: 'Выберите корректную пасеку.' })
+      const { data: apiary, error } = await req.db.from('apiaries').select('id')
+        .eq('id', apiaryId).eq('user_id', userId).maybeSingle()
+      if (error) return res.status(500).json({ error: 'Не удалось проверить пасеку.' })
+      if (!apiary?.id) return res.status(404).json({ error: 'Пасека не найдена.' })
+    }
+
     const { data, error } = await req.db
       .from('hives')
-      .insert([{ user_id: userId, hive_number: hiveNumber }])
-      .select('hive_number,created_at')
+      .insert([{ user_id: userId, hive_number: hiveNumber, ...(apiaryId ? { apiary_id: apiaryId } : {}) }])
+      .select('hive_number,created_at,apiary_id')
       .single()
 
+    if (error?.code === '23505') return res.status(409).json({ error: 'Улей с таким номером уже есть. Его можно перенести из другой пасеки через карточку улья.' })
     if (error) return res.status(400).json({ error: 'Database operation failed' })
 
+    clearCachedHives(userId)
+    res.json(data)
+  })
+
+  app.patch('/api/hives/:hive_number/apiary', async (req, res) => {
+    const userId = req.user.id
+    const hiveNumber = getHiveNumber(req.params.hive_number)
+    const apiaryId = req.body.apiary_id
+    if (!validHiveNumber(hiveNumber) || !validApiaryId(apiaryId)) {
+      return res.status(400).json({ error: 'Выберите улей и пасеку назначения.' })
+    }
+    const { data: apiary, error: apiaryError } = await req.db.from('apiaries')
+      .select('id').eq('id', apiaryId).eq('user_id', userId).maybeSingle()
+    if (apiaryError) return res.status(500).json({ error: 'Не удалось проверить пасеку.' })
+    if (!apiary?.id) return res.status(404).json({ error: 'Пасека не найдена.' })
+    const { data, error } = await req.db.from('hives').update({ apiary_id: apiaryId })
+      .eq('hive_number', hiveNumber).eq('user_id', userId)
+      .select('hive_number,created_at,apiary_id').maybeSingle()
+    if (error) return res.status(400).json({ error: 'Не удалось перенести улей.' })
+    if (!data) return res.status(404).json({ error: 'Улей не найден.' })
     clearCachedHives(userId)
     res.json(data)
   })

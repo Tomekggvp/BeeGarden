@@ -6,6 +6,7 @@ dist-ssr/
 .env
 .DS_Store
 .playwright-mcp/
+supabase/.temp/
 *.sql
 supabase*.sql
 !supabase/

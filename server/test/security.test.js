@@ -19,7 +19,7 @@ const fixture = async (options = {}) => {
       queries.push(query)
       const chain = new Proxy({}, {
         get(_target, method) {
-          if (method === 'then') return (resolve, reject) => Promise.resolve({ data: [], error: null }).then(resolve, reject)
+          if (method === 'then') return (resolve, reject) => Promise.resolve({ data: options.rows?.[table] ?? [], error: null }).then(resolve, reject)
           return (...args) => { query.operations.push([method, ...args]); return chain }
         },
       })
@@ -50,6 +50,7 @@ test('all data and push endpoints require authentication before database access'
       ['GET', '/api/beehive/1'], ['POST', '/api/beehive'],
       ['POST', '/api/push/subscribe'], ['DELETE', '/api/push/subscribe'],
       ['POST', '/api/check-notifications/send'], ['GET', '/api/weather/location'],
+      ['PATCH', '/api/hives/1/apiary'],
     ]) {
       for (const authorization of ['', 'Bearer forged-token']) {
         const response = await f.request(path, { method, headers: { Authorization: authorization } })
@@ -234,5 +235,41 @@ test('scheduler fetches subscriptions once per batch and delivers only to each t
     assert.ok(sentTo.slice(0, 2).every((sent) => sent.endpoint.endsWith(userId)))
     assert.ok(sentTo[2].endpoint.endsWith(otherId))
     assert.equal(operations.filter((op) => op.table === 'tasks' && op.methods.includes('update')).length, 3)
+  } finally { await f.close() }
+})
+
+test('hive transfers require an owned destination and preserve the hive number', async () => {
+  const apiaryId = 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa'
+  const f = await fixture({ rows: { apiaries: { id: apiaryId }, hives: { hive_number: '1', apiary_id: apiaryId } } })
+  try {
+    const response = await f.request('/api/hives/1/apiary', { method: 'PATCH', body: JSON.stringify({ apiary_id: apiaryId }) })
+    assert.equal(response.status, 200)
+    assert.equal((await response.json()).hive_number, '1')
+    for (const query of f.queries) {
+      assert.ok(query.operations.some(([method, column, value]) => method === 'eq' && column === 'user_id' && value === userId))
+    }
+    const update = f.queries.find((query) => query.table === 'hives').operations.find(([method]) => method === 'update')
+    assert.deepEqual(update[1], { apiary_id: apiaryId })
+  } finally { await f.close() }
+  const denied = await fixture({ rows: { apiaries: null } })
+  try {
+    for (const [method, path, body] of [
+      ['PATCH', '/api/hives/1/apiary', { apiary_id: apiaryId }],
+      ['POST', '/api/hives', { hive_number: '1', apiary_id: apiaryId }],
+    ]) {
+      assert.equal((await denied.request(path, { method, body: JSON.stringify(body) })).status, 404)
+    }
+    assert.ok(denied.queries.every((query) => query.table === 'apiaries'))
+    assert.equal((await denied.request('/api/hives/1/apiary', { method: 'PATCH', body: JSON.stringify({ apiary_id: '../other' }) })).status, 400)
+  } finally { await denied.close() }
+})
+
+test('new hive insertion includes its selected apiary without changing its number', async () => {
+  const apiaryId = 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa'
+  const f = await fixture({ rows: { apiaries: { id: apiaryId } } })
+  try {
+    assert.equal((await f.request('/api/hives', { method: 'POST', body: JSON.stringify({ hive_number: '42', apiary_id: apiaryId }) })).status, 200)
+    assert.deepEqual(f.queries.find((query) => query.table === 'hives').operations.find(([method]) => method === 'insert')[1],
+      [{ user_id: userId, hive_number: '42', apiary_id: apiaryId }])
   } finally { await f.close() }
 })

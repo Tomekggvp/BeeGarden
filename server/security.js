@@ -9,6 +9,9 @@ export const safeSecretEqual = (provided, expected) => {
 export const validHiveNumber = (value) =>
   typeof value === 'string' && value.length <= 64 && /^[\p{L}\p{N}_ .-]+$/u.test(value)
 
+export const validApiaryId = (value) => typeof value === 'string'
+  && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(value)
+
 // Only browser push providers may receive server-side HTTP requests.
 export const validPushEndpoint = (value) => {
   try {
