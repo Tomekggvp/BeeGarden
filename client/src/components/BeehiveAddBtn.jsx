@@ -3,7 +3,8 @@ import { Plus } from 'lucide-react'
 import AddBeehiveInfo from './AddBeehiveInfo.jsx'
 import BgHome from './BgHome'
 import ConfirmDeleteModal from './ConfirmDeleteModal.jsx'
-import api from '../api/axios'
+import { supabase } from '../services/supabaseClient'
+import { createUserHive, deleteUserHive, moveUserHive } from '../lib/hiveData'
 import ApiaryPanel from './ApiaryPanel'
 
 const BeehiveDetails = lazy(() => import('./BeehiveDetails'))
@@ -13,6 +14,8 @@ const BeehiveAddBtn = ({ session, hives = [], hivesLoading = false, hivesError, 
   const [isAddModalOpen, setIsAddModalOpen] = useState(false)
   const [beehiveNum, setBeehiveNum] = useState('')
   const [isSaving, setIsSaving] = useState(false)
+  const [saveError, setSaveError] = useState('')
+  const openAddModal = () => { setSaveError(''); setIsAddModalOpen(true) }
 
   const [isDetailsOpen, setIsDetailsOpen] = useState(false)
   const [selectedHiveId, setSelectedHiveId] = useState(null)
@@ -33,23 +36,20 @@ const BeehiveAddBtn = ({ session, hives = [], hivesLoading = false, hivesError, 
     if (!hiveNumber || !session?.user?.id || !activeApiary || isSaving) return
 
     if (hives.find((item) => String(item.id) === hiveNumber)) {
-      alert('Улей с таким номером уже существует!')
+      setSaveError('Улей с таким номером уже существует!')
       return
     }
 
     setIsSaving(true)
+    setSaveError('')
 
     try {
-      const res = await api.post('/api/hives', {
-        user_id: session.user.id,
-        hive_number: hiveNumber,
-        apiary_id: activeApiary.id,
-      })
+      const data = await createUserHive(supabase, session.user.id, hiveNumber, activeApiary.id)
 
       const newHive = {
-        id: res.data.hive_number,
-        number: res.data.hive_number,
-        apiaryId: res.data.apiary_id || activeApiary.id,
+        id: data.hive_number,
+        number: data.hive_number,
+        apiaryId: data.apiary_id,
       }
 
       updateHives((currentHives) => {
@@ -63,7 +63,7 @@ const BeehiveAddBtn = ({ session, hives = [], hivesLoading = false, hivesError, 
       setBeehiveNum('')
       setIsAddModalOpen(false)
     } catch (err) {
-      alert(err.response?.data?.error || 'Ошибка сохранения')
+      setSaveError(err.message || 'Ошибка сохранения')
     } finally {
       setIsSaving(false)
     }
@@ -78,9 +78,7 @@ const BeehiveAddBtn = ({ session, hives = [], hivesLoading = false, hivesError, 
     if (!hiveToDelete || !session?.user?.id) return
 
     try {
-      await api.delete(`/api/hives/${encodeURIComponent(hiveToDelete)}`, {
-        params: { user_id: session.user.id },
-      })
+      await deleteUserHive(supabase, session.user.id, hiveToDelete)
 
       updateHives((currentHives) =>
         currentHives.filter((item) => String(item.id) !== String(hiveToDelete))
@@ -126,7 +124,7 @@ const BeehiveAddBtn = ({ session, hives = [], hivesLoading = false, hivesError, 
 
             <button
               type="button"
-              onClick={() => setIsAddModalOpen(true)}
+              onClick={openAddModal}
               disabled={!activeApiary || apiaryControls.loading}
               className="inline-flex items-center gap-2 rounded-lg bg-[#f8b400] px-5 py-4 font-black text-[#2b1a00] shadow-[0_10px_22px_rgba(248,180,0,0.24)] transition-all hover:-translate-y-0.5 hover:bg-[#ffd24a] active:translate-y-0"
             >
@@ -153,7 +151,7 @@ const BeehiveAddBtn = ({ session, hives = [], hivesLoading = false, hivesError, 
               setSelectedHiveId(id)
               setIsDetailsOpen(true)
             }}
-            onAddHive={() => setIsAddModalOpen(true)}
+            onAddHive={openAddModal}
             showDelete
           />
         )}
@@ -166,6 +164,7 @@ const BeehiveAddBtn = ({ session, hives = [], hivesLoading = false, hivesError, 
         beehiveNum={beehiveNum}
         setBeehiveNum={setBeehiveNum}
         isSaving={isSaving}
+        errorMessage={saveError}
       />
 
       <ConfirmDeleteModal
@@ -188,7 +187,7 @@ const BeehiveAddBtn = ({ session, hives = [], hivesLoading = false, hivesError, 
             apiaries={apiaries}
             currentApiaryId={activeApiary.id}
             onTransfer={async (destinationId) => {
-              const { data } = await api.patch(`/api/hives/${encodeURIComponent(selectedHiveId)}/apiary`, { apiary_id: destinationId })
+              const data = await moveUserHive(supabase, session.user.id, selectedHiveId, destinationId)
               updateHives((current) => current.map((item) => String(item.id) === String(selectedHiveId)
                 ? { ...item, apiaryId: data.apiary_id } : item))
               setTransferMessage(`Улей №${selectedHiveId} перенесён в пасеку «${apiaries.find((item) => item.id === destinationId)?.name || ''}». Номер сохранён.`)

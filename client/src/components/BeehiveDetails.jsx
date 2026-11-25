@@ -5,11 +5,12 @@ import ComboBox from '../componentsMUI/ComboBox'
 import DateSelect from '../componentsMUI/DateSelect'
 import { supabase } from '../services/supabaseClient'
 import HiveTransfer from './HiveTransfer'
+import { parseSwarmCount } from '../lib/hiveDetails'
 
 const BeehiveDetails = ({ isOpen, onClose, hiveId, session, apiaries = [], currentApiaryId, onTransfer }) => {
   const [details, setDetails] = useState({
     breed: null,
-    swarms: '',
+    swarms: 0,
     date: null,
     customNote: '',
   })
@@ -43,12 +44,12 @@ const BeehiveDetails = ({ isOpen, onClose, hiveId, session, apiaries = [], curre
           if (data?.hive_id) {
             setDetails({
               breed: data.breed || null,
-              swarms: data.swarms || '',
+              swarms: data.swarms ?? 0,
               date: data.install_date ? dayjs(data.install_date) : null,
               customNote: data.custom_note || '',
             })
           } else {
-            setDetails({ breed: null, swarms: '', date: null, customNote: '' })
+            setDetails({ breed: null, swarms: 0, date: null, customNote: '' })
           }
         })
         .catch((err) => {
@@ -70,7 +71,7 @@ const BeehiveDetails = ({ isOpen, onClose, hiveId, session, apiaries = [], curre
         hive_id: String(hiveId),
         user_id: session.user.id,
         breed: details.breed,
-        swarms: parseInt(details.swarms, 10) || 0,
+        swarms: parseSwarmCount(details.swarms),
         install_date: details.date ? details.date.format('YYYY-MM-DD') : null,
         custom_note: String(details.customNote || '').trim() || null,
       }
@@ -130,13 +131,14 @@ const BeehiveDetails = ({ isOpen, onClose, hiveId, session, apiaries = [], curre
               </label>
               <input
                 type="number"
+                aria-label="Количество роений"
+                placeholder="0"
                 min="0"
                 max="100000"
                 step="1"
                 value={details.swarms}
                 onChange={(event) => setDetails({ ...details, swarms: event.target.value })}
                 className="rounded-lg border-2 border-[#f1d88a] bg-white px-4 py-3 text-base font-bold text-[#2f2100] outline-none transition-all focus:border-[#f8b400] focus:ring-4 focus:ring-[#f8b400]/20"
-                required
               />
             </div>
 

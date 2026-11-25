@@ -1,7 +1,7 @@
 import { useEffect } from 'react'
 import { XIcon } from 'lucide-react'
 
-const AddBeehiveInfo = ({ isOpen, onClose, onConfirm, beehiveNum, setBeehiveNum, isSaving = false }) => {
+const AddBeehiveInfo = ({ isOpen, onClose, onConfirm, beehiveNum, setBeehiveNum, isSaving = false, errorMessage = '' }) => {
   useEffect(() => {
     window.dispatchEvent(new CustomEvent('beegarden:modal-visibility', {
       detail: { open: isOpen, modalId: 'add-beehive-info' },
@@ -40,12 +40,17 @@ const AddBeehiveInfo = ({ isOpen, onClose, onConfirm, beehiveNum, setBeehiveNum,
           Номер улья
         </h3>
 
+        <form onSubmit={(event) => { event.preventDefault(); onConfirm() }}>
         <div className="mt-6">
           <label className="mb-2 block text-sm font-bold text-[#7a5a1a]">
             Введите номер
           </label>
           <input
             type="text"
+            aria-label="Номер нового улья"
+            required
+            autoComplete="off"
+            enterKeyHint="done"
             maxLength={64}
             value={beehiveNum}
             onChange={(event) => setBeehiveNum(event.target.value)}
@@ -53,6 +58,7 @@ const AddBeehiveInfo = ({ isOpen, onClose, onConfirm, beehiveNum, setBeehiveNum,
             autoFocus
           />
         </div>
+        {errorMessage && <p role="alert" className="mt-3 text-sm font-bold text-red-700">{errorMessage}</p>}
 
         <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:justify-end">
           <button
@@ -63,14 +69,14 @@ const AddBeehiveInfo = ({ isOpen, onClose, onConfirm, beehiveNum, setBeehiveNum,
             Отмена
           </button>
           <button
-            type="button"
-            onClick={onConfirm}
+            type="submit"
             disabled={isSaving}
             className="rounded-lg bg-[#f8b400] px-5 py-3 font-black text-[#2b1a00] shadow-sm transition-all hover:bg-[#ffd24a] active:scale-95 disabled:opacity-60"
           >
             {isSaving ? 'Сохранение...' : 'Подтвердить'}
           </button>
         </div>
+        </form>
       </div>
     </div>
   )
