@@ -175,7 +175,9 @@ input::-webkit-inner-spin-button {
 }
 
 .leaf-corners {
-  filter: drop-shadow(0 6px 9px rgba(33, 82, 24, 0.18));
+  width: 100%;
+  height: 100vh;
+  height: 100dvh;
 }
 
 .tree-leaf {

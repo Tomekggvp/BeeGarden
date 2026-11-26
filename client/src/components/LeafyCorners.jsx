@@ -1,4 +1,6 @@
 import { Leaf } from 'lucide-react'
+import { useEffect, useRef } from 'react'
+import { createPortal } from 'react-dom'
 
 const leafFrames = [
   {
@@ -51,25 +53,56 @@ const leafFrames = [
   },
 ]
 
-const LeafyCorners = () => (
-  <div className="leaf-corners pointer-events-none fixed inset-0 z-0 overflow-hidden" aria-hidden="true">
-    {leafFrames.map((corner) => (
-      <div key={corner.cornerClass} className={`absolute h-28 w-32 sm:h-36 sm:w-44 lg:scale-125 xl:scale-[1.35] ${corner.cornerClass}`}>
-        {corner.leaves.map((leaf, index) => (
-          <Leaf
-            key={`${corner.cornerClass}-${index}`}
-            className={`tree-leaf absolute ${leaf.className}`}
-            style={{
-              '--leaf-delay': leaf.delay,
-              color: leaf.color,
-              fill: leaf.color,
-            }}
-            strokeWidth={1.6}
-          />
-        ))}
-      </div>
-    ))}
-  </div>
-)
+const LeafyCorners = () => {
+  const layerRef = useRef(null)
+
+  useEffect(() => {
+    const viewport = window.visualViewport
+    let frame
+    const update = () => {
+      const layer = layerRef.current
+      if (!layer) return
+      layer.style.width = `${viewport?.width ?? window.innerWidth}px`
+      layer.style.height = `${viewport?.height ?? window.innerHeight}px`
+      layer.style.transform = `translate3d(${viewport?.offsetLeft ?? 0}px, ${viewport?.offsetTop ?? 0}px, 0)`
+    }
+    const scheduleUpdate = () => {
+      cancelAnimationFrame(frame)
+      frame = requestAnimationFrame(update)
+    }
+    update()
+    viewport?.addEventListener('resize', scheduleUpdate)
+    viewport?.addEventListener('scroll', scheduleUpdate)
+    window.addEventListener('resize', scheduleUpdate)
+    return () => {
+      cancelAnimationFrame(frame)
+      viewport?.removeEventListener('resize', scheduleUpdate)
+      viewport?.removeEventListener('scroll', scheduleUpdate)
+      window.removeEventListener('resize', scheduleUpdate)
+    }
+  }, [])
+
+  return createPortal(
+    <div ref={layerRef} className="leaf-corners pointer-events-none fixed left-0 top-0 z-0 overflow-hidden" aria-hidden="true">
+      {leafFrames.map((corner) => (
+        <div key={corner.cornerClass} className={`absolute h-28 w-32 sm:h-36 sm:w-44 lg:scale-125 xl:scale-[1.35] ${corner.cornerClass}`}>
+          {corner.leaves.map((leaf, index) => (
+            <Leaf
+              key={`${corner.cornerClass}-${index}`}
+              className={`tree-leaf absolute ${leaf.className}`}
+              style={{
+                '--leaf-delay': leaf.delay,
+                color: leaf.color,
+                fill: leaf.color,
+              }}
+              strokeWidth={1.6}
+            />
+          ))}
+        </div>
+      ))}
+    </div>,
+    document.body,
+  )
+}
 
 export default LeafyCorners
