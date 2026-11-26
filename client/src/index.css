@@ -14,7 +14,7 @@ body{
     font-family: "Nunito", sans-serif;
     min-height: 100vh;
     min-height: 100dvh;
-    background-color: #ffda54;
+    background-color: #ffca4d;
 }
 
 .MuiInputBase-root,
@@ -31,7 +31,7 @@ body{
 
 html {
   /* Safari exposes the document canvas when rubber-banding past the bottom. */
-  background-color: #ffda54;
+  background-color: #ffca4d;
 }
 
 main h1 {
