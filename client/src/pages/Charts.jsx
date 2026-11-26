@@ -745,8 +745,8 @@ const Charts = ({ session, hives }) => {
                   key={hive.hiveId}
                   className="rounded-lg border border-[#f1d88a] bg-[#fffaf0]/95 p-4 shadow-sm"
                 >
-                  <div className="flex items-center justify-between gap-3">
-                    <p className="font-['Tenor_Sans'] text-3xl leading-none text-[#2f2100]">
+                  <div className="flex min-w-0 flex-wrap items-center justify-between gap-3">
+                    <p className="min-w-0 break-words [overflow-wrap:anywhere] font-['Tenor_Sans'] text-3xl leading-none text-[#2f2100]">
                       Улей №{hive.hiveNumber}
                     </p>
                     <span className="rounded-full bg-[#fff4cc] px-3 py-1 text-xs font-black text-[#8b4f00]">

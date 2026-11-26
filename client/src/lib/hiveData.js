@@ -18,7 +18,7 @@ export const normalizeHiveNumber = (value) => {
 }
 
 const hiveWriteError = (error) => {
-  if (error.code === '23505') return new Error('Улей с таким номером уже есть. Его можно перенести из другой пасеки через карточку.', { cause: error })
+  if (error.code === '23505') return new Error('Улей с таким номером уже есть в аккаунте. Номер или название должны быть уникальными среди всех пасек.', { cause: error })
   return new Error('Не удалось сохранить изменения. Проверьте соединение и выбранную пасеку, затем повторите.', { cause: error })
 }
 

@@ -52,7 +52,7 @@ const Beehive = ({ beehiveNum, badges = [] }) => (
       </div>
     )}
 
-    <span className="absolute left-1/2 top-[46%] z-20 -translate-x-1/2 -translate-y-1/2 rounded bg-[#2f2100] px-1.5 py-0.5 text-[10px] font-black leading-none text-white shadow-sm sm:rounded-md sm:px-2 sm:py-1 sm:text-base">
+    <span title={String(beehiveNum)} className="max-w-[95%] truncate text-center absolute left-1/2 top-[46%] z-20 -translate-x-1/2 -translate-y-1/2 rounded bg-[#2f2100] px-1.5 py-0.5 text-[10px] font-black leading-none text-white shadow-sm sm:rounded-md sm:px-2 sm:py-1 sm:text-base">
       {beehiveNum}
     </span>
   </div>

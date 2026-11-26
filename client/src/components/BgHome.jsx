@@ -50,10 +50,10 @@ const BgHome = ({
                     event.stopPropagation()
                     removeComponent(item.id)
                   }}
-                  className="absolute right-1 top-1 z-20 flex h-5 w-5 items-center justify-center rounded-full border border-[#f1d88a] bg-white text-[#9a5a00] shadow-sm transition-all hover:border-red-200 hover:bg-red-50 hover:text-red-600 sm:h-7 sm:w-7"
+                  className="absolute right-1 top-1 z-20 flex h-11 w-11 items-center justify-center rounded-full text-[#9a5a00] transition-all hover:border-red-200 hover:bg-red-50 hover:text-red-600 sm:h-11 sm:w-11"
                   aria-label={`Удалить улей ${item.number}`}
                 >
-                  <XIcon className="h-2.5 w-2.5 sm:h-3.5 sm:w-3.5" />
+                  <XIcon className="h-6 w-6 rounded-full border border-[#f1d88a] bg-white p-1 shadow-sm" />
                 </button>
               )}
 

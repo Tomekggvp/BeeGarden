@@ -8,6 +8,9 @@ import tailwindcss from '@tailwindcss/vite'
 export default defineConfig(({ command }) => ({
   resolve: {
     alias: command === 'serve' && process.env.APIARY_PREVIEW === '1' ? [
+      ...(process.env.APIARY_DESIGN === 'classic-plus' ? [
+        { find: './pages/Home', replacement: fileURLToPath(new URL('./preview/classic-plus/Home.jsx', import.meta.url)) },
+      ] : []),
       { find: /^(.*\/)?services\/supabaseClient(\.js)?$/, replacement: fileURLToPath(new URL('./preview/supabaseClient.js', import.meta.url)) },
       { find: /^(.*\/)?api\/axios(\.js)?$/, replacement: fileURLToPath(new URL('./preview/api.js', import.meta.url)) },
     ] : [],

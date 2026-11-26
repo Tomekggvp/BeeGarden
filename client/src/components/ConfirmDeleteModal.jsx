@@ -29,13 +29,13 @@ const ConfirmDeleteModal = ({ isOpen, onClose, onConfirm, hiveId }) => {
   }
 
   return (
-    <div className="fixed inset-0 z-[30010] flex items-center justify-center overflow-y-auto p-4">
+    <div className="app-modal fixed inset-0 z-[30010] flex items-center justify-center overflow-y-auto p-4">
       <div
         className="absolute inset-0 bg-[#111827]/35 backdrop-blur-sm"
         onClick={handleClose}
       />
 
-      <div className="relative w-full max-w-sm max-h-[calc(100dvh-2rem)] overflow-y-auto rounded-lg border border-[#f1d88a] bg-[#fffdf7] p-6 shadow-[0_24px_70px_rgba(93,58,0,0.18)] sm:max-w-xl">
+      <div className="app-modal-panel relative w-full max-w-sm max-h-[calc(100dvh-2rem)] overflow-y-auto rounded-lg border border-[#f1d88a] bg-[#fffdf7] p-6 shadow-[0_24px_70px_rgba(93,58,0,0.18)] sm:max-w-xl">
         <button
           type="button"
           onClick={handleClose}

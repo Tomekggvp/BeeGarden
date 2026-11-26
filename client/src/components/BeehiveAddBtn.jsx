@@ -36,7 +36,7 @@ const BeehiveAddBtn = ({ session, hives = [], hivesLoading = false, hivesError, 
     if (!hiveNumber || !session?.user?.id || !activeApiary || isSaving) return
 
     if (hives.find((item) => String(item.id) === hiveNumber)) {
-      setSaveError('Улей с таким номером уже существует!')
+      setSaveError('Улей с таким номером или названием уже есть в аккаунте.')
       return
     }
 

@@ -1,3 +1,4 @@
+import { useScrollLock } from './lib/useScrollLock'
 import { lazy, Suspense, useCallback, useEffect, useState } from 'react'
 import { Route, Routes, useLocation } from 'react-router-dom'
 import { supabase } from './services/supabaseClient'
@@ -96,6 +97,8 @@ function App() {
       return false
     }
   })
+
+  useScrollLock(openModalIds.length > 0)
 
   const liveHives = useLiveData(session?.user?.id, ['hives'])
   const liveApiaries = useLiveData(session?.user?.id, ['apiaries'])
@@ -319,7 +322,7 @@ function App() {
       <Suspense fallback={<PageFallback />}>
         <AccountLiveSync key={session.user.id} userId={session.user.id} />
         <ReminderScheduler key={`reminders:${session.user.id}`} session={session} />
-        {!isAdminRoute && <TemporaryDrawer />}
+        {!isAdminRoute && <TemporaryDrawer isHidden={openModalIds.length > 0} />}
         {import.meta.env.DEV && import.meta.env.VITE_APIARY_PREVIEW === '1' && (
           <div className="relative mx-auto max-w-6xl rounded-lg bg-[#2f2100] px-4 py-3 text-sm font-bold text-white">
             Локальная проверка: тестовые данные сохраняются только в этом браузере. Рабочая база не изменяется.

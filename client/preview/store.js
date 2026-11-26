@@ -56,6 +56,30 @@ export const query = (table) => {
   const run = () => {
     if (cached) return cached
     const rows = getRows(table)
+    // Validate the entire write before applying it, like the database's unique
+    // (user_id, hive_number) index. Apiary is deliberately not part of the key.
+    if (table === 'hives' && ['insert', 'upsert', 'update'].includes(operation)) {
+      const candidates = operation === 'update'
+        ? rows.filter(matches).map((row) => ({ ...row, ...payload }))
+        : (Array.isArray(payload) ? payload : [payload]).map((value) => {
+          const existing = operation === 'upsert' && conflict
+            ? rows.find((row) => conflict.split(',').every((key) => row[key] === value[key])) : null
+          return existing ? { ...existing, ...value } : { ...value, id: crypto.randomUUID() }
+        })
+      const affectedIds = new Set(candidates.map((row) => row.id))
+      const affectedKeys = new Set(candidates.map((row) => JSON.stringify([row.user_id, row.hive_number])))
+      const proposed = [...rows.filter((row) => !affectedIds.has(row.id)), ...candidates]
+      const keys = new Set()
+      for (const row of proposed) {
+        const key = JSON.stringify([row.user_id, row.hive_number])
+        if (!affectedKeys.has(key)) continue
+        if (keys.has(key)) {
+          cached = { data: null, error: { code: '23505', message: 'Номер или название улья уже используется в этом аккаунте.' } }
+          return cached
+        }
+        keys.add(key)
+      }
+    }
     let result
     if (operation === 'select') result = rows.filter(matches)
     else if (operation === 'delete') {

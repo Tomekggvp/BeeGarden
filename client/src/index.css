@@ -4,17 +4,98 @@
 
 *{
     font-family: "Outfit", sans-serif;
-    scrollbar-width: thin;
-    scrollbar-color: #787777 #1e1e1e;
+    scrollbar-width: none;
+}
+
+*::-webkit-scrollbar {
+    display: none;
 }
 
 body{
     min-height: 100vh;
-    background: linear-gradient(145deg, #ffe05a 0%, #ff8f12 100%);
+    min-height: 100dvh;
+    background: #ff8f12 linear-gradient(145deg, #ffe05a 0%, #ff8f12 100%);
 }
 
 #root {
   min-height: 100vh;
+  min-height: 100dvh;
+}
+
+html {
+  /* Safari exposes the document canvas when rubber-banding past the bottom. */
+  background-color: #ff8f12;
+}
+
+main h1 {
+  overflow-wrap: anywhere;
+}
+
+/* One scroll surface per dialog, including small screens and the keyboard. */
+.app-modal {
+  --modal-top: max(1rem, env(safe-area-inset-top));
+  --modal-bottom: max(1rem, env(safe-area-inset-bottom));
+  padding: var(--modal-top) max(1rem, env(safe-area-inset-right)) var(--modal-bottom) max(1rem, env(safe-area-inset-left));
+  overscroll-behavior: contain;
+}
+
+.app-modal-panel {
+  display: block;
+  min-width: 0;
+  max-height: calc(100dvh - var(--modal-top) - var(--modal-bottom));
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: 1.25rem;
+  overflow-wrap: anywhere;
+}
+
+.app-modal-panel > *,
+.app-modal-panel .grid > * {
+  min-width: 0;
+}
+
+.app-modal-panel > .overflow-y-auto {
+  overflow-y: visible;
+}
+
+.app-modal-panel h2,
+.app-modal-panel h3 {
+  padding-right: 1.5rem;
+}
+
+.app-modal-panel h2 { font-size: clamp(1.5rem, 7vw, 2.25rem); }
+
+.app-modal-panel input,
+.app-modal-panel select,
+.app-modal-panel textarea {
+  min-width: 0;
+  max-width: 100%;
+  font-size: 1rem;
+}
+
+.app-modal-panel button[aria-label^="Закрыть"] {
+  width: 44px;
+  height: 44px;
+  top: 8px;
+  right: 8px;
+}
+
+@media (min-width: 640px) {
+  .app-modal-panel { padding: 1.5rem; }
+}
+
+.menu-panel {
+  overscroll-behavior: contain;
+  padding-top: max(5rem, calc(env(safe-area-inset-top) + 4rem));
+  padding-bottom: max(2rem, env(safe-area-inset-bottom));
+}
+
+.menu-close { z-index: 1; }
+.menu-item { min-height: 44px; overflow-wrap: anywhere; }
+
+@media (max-height: 500px) {
+  .menu-panel .menu-item { font-size: 1.75rem; line-height: 1.2; }
+  .menu-panel .menu-kicker { margin-bottom: 0.5rem; }
 }
 
 .no-scrollbar{

@@ -27,13 +27,13 @@ export default function ApiaryPanel({ apiaries, activeApiary, onSelect, onSave, 
     } finally { setSaving(false) }
   }
   return (
-    <section aria-label="Выбор пасеки" className="mb-5 rounded-lg border border-[#f1d88a] bg-[#fffdf7] p-4 shadow-sm">
+    <section aria-label="Выбор пасеки" className="mb-5 rounded-lg border border-[#f1d88a] bg-[#fffdf7] px-3 py-1.5 shadow-sm">
       <div className="flex items-center justify-between gap-3">
         <div className="min-w-0">
           <p className="text-xs font-bold text-[#7a5a1a]">Пасека</p>
           <p className="truncate text-base font-black text-[#2f2100]">{loading ? 'Загрузка...' : activeApiary?.name || 'Выберите пасеку'}</p>
         </div>
-        <button type="button" aria-label={expanded ? 'Скрыть выбор пасеки' : 'Показать выбор пасеки'} title={expanded ? 'Скрыть выбор пасеки' : 'Показать выбор пасеки'} aria-expanded={expanded} aria-controls={panelId} onClick={() => setExpanded((value) => !value)} className="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg border border-[#f1d88a] bg-[#fff4cc] text-[#7a5a1a] transition-colors hover:bg-[#ffe8a3] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#9a5a00]">
+        <button type="button" aria-label={expanded ? 'Скрыть выбор пасеки' : 'Показать выбор пасеки'} title={expanded ? 'Скрыть выбор пасеки' : 'Показать выбор пасеки'} aria-expanded={expanded} aria-controls={panelId} onClick={() => setExpanded((value) => !value)} className="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg border border-[#f1d88a] bg-[#fff4cc] text-[#7a5a1a] transition-colors hover:bg-[#ffe8a3] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#9a5a00]">
           {expanded ? <PanelTopClose size={22} /> : <MapPinned size={22} />}
         </button>
       </div>

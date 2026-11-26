@@ -1,3 +1,4 @@
+import { useScrollLock } from '../lib/useScrollLock'
 import { useState } from 'react'
 import { XIcon, Menu } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
@@ -16,8 +17,9 @@ const menuItems = [
   { label: 'Добавить улей', path: '/' },
 ]
 
-export default function TemporaryDrawer() {
+export default function TemporaryDrawer({ isHidden = false }) {
   const [open, setOpen] = useState(false)
+  useScrollLock(open)
   const navigate = useNavigate()
 
   const setMenuVisible = (value) => {
@@ -50,42 +52,42 @@ export default function TemporaryDrawer() {
   }
 
   return (
-    <div className="relative z-20 h-[52px]">
+    <div className="pointer-events-none relative z-20 h-16 sm:h-20">
       <button
         type="button"
+        hidden={isHidden || open}
         onClick={() => {
           setOpen(true)
           setMenuVisible(true)
         }}
-        className="fixed left-0 top-0 z-20 rounded-br-lg bg-[#fffdf7]/95 p-3 text-black shadow-sm backdrop-blur-sm transition-transform hover:scale-105 active:scale-95"
+        className="pointer-events-auto fixed left-4 top-4 z-20 inline-flex h-11 w-11 items-center justify-center rounded-full border border-[#f1d88a] bg-[#fffaf0]/95 text-[#8b4f00] shadow-sm backdrop-blur transition-colors hover:bg-[#fff4cc] sm:left-6 sm:top-6"
         aria-label="Открыть меню"
       >
-        <Menu className="h-7 w-7" />
+        <Menu size={20} />
       </button>
 
       {open && (
         <div
-          className="menu-overlay fixed inset-0 z-[1000] min-h-screen bg-[#16120b]/90 backdrop-blur-md"
+          className="menu-overlay pointer-events-auto fixed inset-0 z-[1000] h-dvh overflow-hidden bg-[#16120b]/90 backdrop-blur-md"
           onClick={closeDrawer}
         >
+          <button
+            type="button"
+            onClick={(event) => {
+              event.stopPropagation()
+              closeDrawer()
+            }}
+            className="menu-close fixed right-5 top-5 p-3 text-yellow-100 transition-all hover:scale-105 hover:text-white active:scale-95 sm:right-8 sm:top-8"
+            aria-label="Закрыть меню"
+          >
+            <XIcon className="h-8 w-8" />
+          </button>
           <nav
-            className="menu-panel relative flex min-h-screen w-full items-center justify-center overflow-y-auto px-6 py-8 sm:px-10"
+            className="menu-panel flex h-full w-full flex-col items-center overflow-y-auto px-6 pb-8 pt-20 sm:px-10"
             onClick={closeDrawer}
             aria-label="Главное меню"
           >
-            <button
-              type="button"
-              onClick={(event) => {
-                event.stopPropagation()
-                closeDrawer()
-              }}
-              className="menu-close fixed right-5 top-5 p-3 text-yellow-100 transition-all hover:scale-105 hover:text-white active:scale-95 sm:right-8 sm:top-8"
-              aria-label="Закрыть меню"
-            >
-              <XIcon className="h-8 w-8" />
-            </button>
-
-            <div className="w-full max-w-5xl text-center">
+            <div className="my-auto w-full max-w-5xl shrink-0 text-center">
               <p className="menu-kicker mb-6 text-sm font-bold uppercase tracking-[0.35em] text-yellow-300 sm:text-base">
                 BeeGarden
               </p>
