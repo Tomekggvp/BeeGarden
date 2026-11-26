@@ -620,13 +620,13 @@ const Charts = ({ session, hives }) => {
               <span className="h-2 w-2 rounded-full bg-[#f8b400]"></span>
               BeeGarden
             </div>
-            <h1 className="font-['Tenor_Sans'] text-5xl leading-none text-[#2f2100] sm:text-7xl">
+            <h1 className="font-['Rubik'] text-5xl leading-none text-[#2f2100] sm:text-7xl">
               Графики
             </h1>
           </div>
 
           <div className="rounded-lg border border-[#f1d88a] bg-[#fffaf0]/95 px-6 py-10 text-center shadow-sm">
-            <p className="font-['Tenor_Sans'] text-4xl text-[#2f2100]">
+            <p className="font-['Rubik'] text-4xl text-[#2f2100]">
               Пока нет ульев
             </p>
             <p className="mt-3 text-base font-semibold text-[#7a5a1a]">
@@ -646,7 +646,7 @@ const Charts = ({ session, hives }) => {
             <span className="h-2 w-2 rounded-full bg-[#f8b400]"></span>
             BeeGarden
           </div>
-          <h1 className="font-['Tenor_Sans'] text-5xl leading-none text-[#2f2100] sm:text-7xl">
+          <h1 className="font-['Rubik'] text-5xl leading-none text-[#2f2100] sm:text-7xl">
             Графики
           </h1>
           <p className="mt-3 max-w-3xl text-base font-semibold text-[#6f5a26]">
@@ -746,7 +746,7 @@ const Charts = ({ session, hives }) => {
                   className="rounded-lg border border-[#f1d88a] bg-[#fffaf0]/95 p-4 shadow-sm"
                 >
                   <div className="flex min-w-0 flex-wrap items-center justify-between gap-3">
-                    <p className="min-w-0 break-words [overflow-wrap:anywhere] font-['Tenor_Sans'] text-3xl leading-none text-[#2f2100]">
+                    <p className="min-w-0 break-words [overflow-wrap:anywhere] font-['Rubik'] text-3xl leading-none text-[#2f2100]">
                       Улей №{hive.hiveNumber}
                     </p>
                     <span className="rounded-full bg-[#fff4cc] px-3 py-1 text-xs font-black text-[#8b4f00]">

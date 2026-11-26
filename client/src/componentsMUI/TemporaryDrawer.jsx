@@ -88,10 +88,6 @@ export default function TemporaryDrawer({ isHidden = false }) {
             aria-label="Главное меню"
           >
             <div className="my-auto w-full max-w-5xl shrink-0 text-center">
-              <p className="menu-kicker mb-6 text-sm font-bold uppercase tracking-[0.35em] text-yellow-300 sm:text-base">
-                BeeGarden
-              </p>
-
               <div className="flex flex-col items-center gap-2 sm:gap-3">
                 {menuItems.map((item) => (
                   <button
@@ -101,7 +97,7 @@ export default function TemporaryDrawer({ isHidden = false }) {
                       event.stopPropagation()
                       handleNavigate(item.path)
                     }}
-                    className="menu-item font-['Tenor_Sans'] text-3xl text-[#fff3b0] drop-shadow-[0_3px_0_rgba(0,0,0,0.35)] transition-colors hover:text-white sm:text-5xl lg:text-6xl"
+                    className="menu-item font-['Rubik'] text-3xl text-[#fff3b0] drop-shadow-[0_3px_0_rgba(0,0,0,0.35)] transition-colors hover:text-white sm:text-5xl lg:text-6xl"
                   >
                     {item.label}
                   </button>
@@ -113,7 +109,7 @@ export default function TemporaryDrawer({ isHidden = false }) {
                     event.stopPropagation()
                     handleLogout()
                   }}
-                  className="menu-item mt-6 font-['Tenor_Sans'] text-3xl text-red-300 drop-shadow-[0_3px_0_rgba(0,0,0,0.35)] transition-colors hover:text-red-100 sm:text-5xl lg:text-6xl"
+                  className="menu-item mt-6 font-['Rubik'] text-3xl text-red-300 drop-shadow-[0_3px_0_rgba(0,0,0,0.35)] transition-colors hover:text-red-100 sm:text-5xl lg:text-6xl"
                 >
                   Выйти
                 </button>

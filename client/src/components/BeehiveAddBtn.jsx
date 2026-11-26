@@ -97,13 +97,13 @@ const BeehiveAddBtn = ({ session, hives = [], hivesLoading = false, hivesError, 
         <ApiaryPanel key={activeApiary?.id} {...apiaryControls} />
         {hivesError && <div role={hives.length ? 'status' : 'alert'} className="mb-4 rounded-lg border border-[#f1d88a] bg-[#fffaf0] px-4 py-3 text-sm font-bold text-[#7a5a1a]"><p>{hives.length ? 'Показаны сохранённые ульи. Обновим автоматически при восстановлении связи.' : hivesError}</p><button type="button" onClick={onRetryHives} className="mt-2 min-h-12 rounded-lg border border-[#f1d88a] px-4 py-3">Обновить сейчас</button></div>}
         {transferMessage && <p role="status" className="mb-4 rounded-lg border border-green-200 bg-green-50 px-4 py-3 text-sm font-bold text-green-800">{transferMessage}</p>}
-        <div className="mb-6 grid gap-5 lg:grid-cols-[1fr_auto] lg:items-end">
+        <div className="mb-4 grid gap-3 sm:mb-6 sm:gap-5 lg:grid-cols-[1fr_auto] lg:items-end">
           <div>
             <div className="mb-3 hidden items-center gap-2 rounded-lg border border-[#f8b400]/35 bg-[#fffaf0] px-3 py-2 text-xs font-black uppercase tracking-[0.22em] text-[#9a5a00] shadow-sm sm:inline-flex">
               <span className="h-2 w-2 rounded-full bg-[#f8b400]"></span>
               BeeGarden
             </div>
-            <h1 className="max-w-3xl break-words font-['Tenor_Sans'] text-4xl leading-none text-[#2f2100] sm:text-7xl">
+            <h1 className="max-w-3xl break-words font-['Rubik'] text-3xl leading-none text-[#2f2100] sm:text-7xl">
               <span className="sm:hidden">Ульи</span>
               <span className="hidden sm:inline">{activeApiary?.name || 'Пасека'}</span>
             </h1>
@@ -112,12 +112,12 @@ const BeehiveAddBtn = ({ session, hives = [], hivesLoading = false, hivesError, 
             </p>
           </div>
 
-          <div className="flex flex-wrap items-center gap-3">
-            <div className="rounded-lg border border-[#f1d88a] bg-[#fffaf0] px-4 py-3 shadow-sm">
+          <div className="flex flex-wrap items-center gap-2 sm:gap-3">
+            <div className="rounded-lg border border-[#f1d88a] bg-[#fffaf0] px-3 py-2 shadow-sm sm:px-4 sm:py-3">
               <span className="block text-xs font-black uppercase tracking-[0.2em] text-[#9a5a00]">
                 Ульев
               </span>
-              <strong className="text-3xl font-black leading-none text-[#2f2100]">
+              <strong className="text-2xl font-black leading-none text-[#2f2100] sm:text-3xl">
                 {hives.length}
               </strong>
             </div>
@@ -126,7 +126,7 @@ const BeehiveAddBtn = ({ session, hives = [], hivesLoading = false, hivesError, 
               type="button"
               onClick={openAddModal}
               disabled={!activeApiary || apiaryControls.loading}
-              className="inline-flex items-center gap-2 rounded-lg bg-[#f8b400] px-5 py-4 font-black text-[#2b1a00] shadow-[0_10px_22px_rgba(248,180,0,0.24)] transition-all hover:-translate-y-0.5 hover:bg-[#ffd24a] active:translate-y-0"
+              className="inline-flex min-h-11 items-center gap-2 rounded-lg primary-action px-4 py-3 text-sm font-black transition-colors  disabled:cursor-not-allowed disabled:opacity-60 sm:px-5 sm:py-4 sm:text-base"
             >
               <Plus size={20} />
               Добавить улей

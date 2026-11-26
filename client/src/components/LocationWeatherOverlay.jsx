@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { CloudRain, MoonStar, Sun, Wind } from 'lucide-react'
+import { CloudRain, Wind } from 'lucide-react'
 import { MENU_VISIBILITY_EVENT } from '../componentsMUI/TemporaryDrawer'
 import {
   fetchLocationWeather,
@@ -18,16 +18,6 @@ const formatWind = (value) =>
 const formatPrecipitation = (value) =>
   value === null || value === undefined ? '--' : `${Math.round(value)}%`
 
-const formatClock = (timezone) => {
-  if (!timezone) return '--:--'
-
-  return new Intl.DateTimeFormat('ru-RU', {
-    hour: '2-digit',
-    minute: '2-digit',
-    timeZone: timezone,
-  }).format(new Date())
-}
-
 const LocationWeatherOverlay = ({ session, apiary, isCollapsed = false }) => {
   const userId = session?.user?.id || ''
   const apiaryId = apiary?.id
@@ -38,7 +28,6 @@ const LocationWeatherOverlay = ({ session, apiary, isCollapsed = false }) => {
   const [weather, setWeather] = useState(null)
   const [isMenuHidden, setIsMenuHidden] = useState(false)
   const [isModalHidden, setIsModalHidden] = useState(false)
-  const [, setTick] = useState(0)
   const isHidden = isMenuHidden || isModalHidden
   const savedLocation = savedLocationState.userId === userId
     ? savedLocationState.location
@@ -144,11 +133,6 @@ const LocationWeatherOverlay = ({ session, apiary, isCollapsed = false }) => {
   }, [savedLocation?.latitude, savedLocation?.longitude])
 
   useEffect(() => {
-    const intervalId = window.setInterval(() => setTick((currentTick) => currentTick + 1), 60 * 1000)
-    return () => window.clearInterval(intervalId)
-  }, [])
-
-  useEffect(() => {
     const handler = (event) => {
       setIsMenuHidden(Boolean(event?.detail?.open))
     }
@@ -167,7 +151,6 @@ const LocationWeatherOverlay = ({ session, apiary, isCollapsed = false }) => {
   }, [])
 
   const visibleWeather = savedLocation && weather?.locationKey === `${savedLocation.latitude},${savedLocation.longitude}` ? weather : null
-  const currentTime = formatClock(visibleWeather?.timezone)
 
   if (!userId || isHidden || isCollapsed || !savedLocation || !visibleWeather) return null
 
@@ -176,20 +159,6 @@ const LocationWeatherOverlay = ({ session, apiary, isCollapsed = false }) => {
       <div className="rounded-lg border border-[#f1d88a] bg-[#fffaf0]/96 px-4 py-3 shadow-[0_16px_36px_rgba(93,58,0,0.18)] backdrop-blur">
         <p className="mb-2 truncate text-center text-xs font-black text-[#7a5a1a]">{apiary?.name}</p>
         <div className="flex flex-wrap items-center justify-center gap-x-5 gap-y-3 text-center text-[#2f2100]">
-          <div className="min-w-[110px]">
-            <p className="text-[11px] font-black uppercase tracking-[0.18em] text-[#9a5a00]">
-              Время
-            </p>
-            <div className="mt-1 inline-flex items-center gap-2 text-base font-black">
-              {visibleWeather.isDay ? (
-                <Sun size={18} className="text-[#f8b400]" />
-              ) : (
-                <MoonStar size={18} className="text-[#4b5fc7]" />
-              )}
-              <span>{currentTime}</span>
-            </div>
-          </div>
-
           <div className="min-w-[110px]">
             <p className="text-[11px] font-black uppercase tracking-[0.18em] text-[#9a5a00]">
               Температура

@@ -14,7 +14,7 @@ export default class AppErrorBoundary extends Component {
           <div className="max-w-md rounded-lg bg-white p-6 text-center shadow-lg" role="alert">
             <h1 className="text-xl font-bold">Не удалось открыть страницу</h1>
             <p className="mt-3">Обновите приложение и попробуйте ещё раз.</p>
-            <button type="button" onClick={() => window.location.reload()} className="mt-5 rounded-lg bg-[#f8b400] px-5 py-3 font-bold">
+            <button type="button" onClick={() => window.location.reload()} className="mt-5 rounded-lg primary-action px-5 py-3 font-bold">
               Обновить приложение
             </button>
           </div>

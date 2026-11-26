@@ -139,7 +139,7 @@ const TaskNotificationsModal = ({ isOpen, onClose, session }) => {
             <p className="mb-2 text-xs font-black uppercase tracking-[0.24em] text-[#9a5a00]">
               История уведомлений
             </p>
-            <h2 className="font-['Tenor_Sans'] text-4xl leading-none text-[#2f2100]">
+            <h2 className="font-['Rubik'] text-4xl leading-none text-[#2f2100]">
               Все напоминания
             </h2>
           </div>

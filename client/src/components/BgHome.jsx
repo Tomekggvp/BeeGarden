@@ -22,7 +22,7 @@ const BgHome = ({
       {isEmpty ? (
         <div className="relative z-10 flex min-h-[180px] items-center justify-center text-center">
           <div className="max-w-md rounded-lg border border-[#f1d88a] bg-[#fffaf0]/90 p-6 shadow-sm backdrop-blur">
-            <p className="mb-3 font-['Tenor_Sans'] text-4xl text-[#2f2100]">
+            <p className="mb-3 font-['Rubik'] text-4xl text-[#2f2100]">
               Пасека пустая
             </p>
             <p className="mb-6 text-base font-semibold text-[#8b4f00]">
@@ -31,7 +31,7 @@ const BgHome = ({
             <button
               type="button"
               onClick={onAddHive}
-              className="rounded-lg bg-[#f8b400] px-5 py-3 font-black text-[#2b1a00] transition-all hover:bg-[#ffd24a] active:scale-95"
+              className="min-h-11 rounded-lg primary-action px-5 py-3 font-black transition-colors "
             >
               Добавить улей
             </button>

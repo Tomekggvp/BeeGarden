@@ -49,7 +49,7 @@ const ConfirmDeleteModal = ({ isOpen, onClose, onConfirm, hiveId }) => {
           <AlertTriangle size={26} />
         </div>
 
-        <h3 className="mt-5 font-['Tenor_Sans'] text-3xl leading-none text-[#2f2100]">
+        <h3 className="mt-5 font-['Rubik'] text-3xl leading-none text-[#2f2100]">
           Удалить улей №{hiveId}?
         </h3>
         <p className="mt-3 text-sm font-semibold text-[#7a5a1a]">

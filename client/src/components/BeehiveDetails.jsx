@@ -123,7 +123,7 @@ const BeehiveDetails = ({ isOpen, onClose, hiveId, session, apiaries = [], curre
         <p className="mb-2 text-xs font-black uppercase tracking-[0.24em] text-[#9a5a00]">
           Карточка улья
         </p>
-        <h2 className="font-['Tenor_Sans'] text-4xl leading-none text-[#2f2100]">
+        <h2 className="font-['Rubik'] text-4xl leading-none text-[#2f2100]">
           Улей №{hiveId}
         </h2>
 
@@ -174,7 +174,7 @@ const BeehiveDetails = ({ isOpen, onClose, hiveId, session, apiaries = [], curre
           <button
             type="submit"
             disabled={loading}
-            className="mt-6 w-full rounded-lg bg-[#f8b400] px-5 py-4 font-black text-[#2b1a00] shadow-sm transition-all hover:bg-[#ffd24a] active:scale-95 disabled:opacity-60"
+            className="mt-6 w-full rounded-lg primary-action px-5 py-4 font-black   transition-all  active:scale-95 disabled:opacity-60"
           >
             {loading ? 'Сохранение...' : 'Сохранить данные'}
           </button>

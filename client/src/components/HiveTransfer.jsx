@@ -22,7 +22,7 @@ export default function HiveTransfer({ apiaries, currentApiaryId, onTransfer }) 
           <option value="">Выберите пасеку</option>
           {apiaries.filter((item) => item.id !== currentApiaryId).map((item) => <option key={item.id} value={item.id}>{item.name}</option>)}
         </select>
-        <button type="button" onClick={transfer} disabled={!destination || busy} className="rounded-lg bg-[#f8b400] px-4 py-3 font-bold disabled:opacity-50">{busy ? 'Переношу...' : 'Перенести улей'}</button>
+        <button type="button" onClick={transfer} disabled={!destination || busy} className="rounded-lg primary-action px-4 py-3 font-bold disabled:opacity-50">{busy ? 'Переношу...' : 'Перенести улей'}</button>
       </div>
       {error && <p role="alert" className="mt-3 text-sm font-bold text-red-700">{error}</p>}
     </section>

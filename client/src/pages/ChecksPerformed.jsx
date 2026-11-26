@@ -24,7 +24,7 @@ const ChecksPerformed = ({ session, hives }) => {
             <span className="h-2 w-2 rounded-full bg-[#f8b400]"></span>
             BeeGarden
           </div>
-          <h1 className="font-['Tenor_Sans'] text-5xl leading-none text-[#2f2100] sm:text-7xl">
+          <h1 className="font-['Rubik'] text-5xl leading-none text-[#2f2100] sm:text-7xl">
             Проверки
           </h1>
           <p className="mt-3 max-w-xl text-base font-semibold text-[#6f5a26]">

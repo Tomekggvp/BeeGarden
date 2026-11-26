@@ -36,7 +36,7 @@ const AddBeehiveInfo = ({ isOpen, onClose, onConfirm, beehiveNum, setBeehiveNum,
         <p className="mb-2 text-xs font-black uppercase tracking-[0.24em] text-[#9a5a00]">
           Новый улей
         </p>
-        <h3 className="font-['Tenor_Sans'] text-4xl leading-none text-[#2f2100]">
+        <h3 className="font-['Rubik'] text-4xl leading-none text-[#2f2100]">
           Номер улья
         </h3>
 
@@ -71,7 +71,7 @@ const AddBeehiveInfo = ({ isOpen, onClose, onConfirm, beehiveNum, setBeehiveNum,
           <button
             type="submit"
             disabled={isSaving}
-            className="rounded-lg bg-[#f8b400] px-5 py-3 font-black text-[#2b1a00] shadow-sm transition-all hover:bg-[#ffd24a] active:scale-95 disabled:opacity-60"
+            className="rounded-lg primary-action px-5 py-3 font-black   transition-all  active:scale-95 disabled:opacity-60"
           >
             {isSaving ? 'Сохранение...' : 'Подтвердить'}
           </button>

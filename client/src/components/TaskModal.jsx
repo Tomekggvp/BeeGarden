@@ -243,7 +243,7 @@ const TaskModal = ({ isOpen, onClose, hiveId, session }) => {
         <p className="mb-2 text-xs font-black uppercase tracking-[0.24em] text-[#9a5a00]">
           Задачи
         </p>
-        <h2 className="font-['Tenor_Sans'] text-4xl leading-none text-[#2f2100]">
+        <h2 className="font-['Rubik'] text-4xl leading-none text-[#2f2100]">
           Улей №{hiveId}
         </h2>
 
@@ -312,7 +312,7 @@ const TaskModal = ({ isOpen, onClose, hiveId, session }) => {
               type="button"
               onClick={handleAdd}
               disabled={isSaving}
-              className="inline-flex h-12 items-center gap-2 rounded-lg bg-[#f8b400] px-4 font-black text-[#2b1a00] transition-all hover:bg-[#ffd24a] active:scale-95 disabled:opacity-60"
+              className="inline-flex h-12 items-center gap-2 rounded-lg primary-action px-4 font-black  transition-all  active:scale-95 disabled:opacity-60"
               aria-label="Добавить задачу"
             >
               <Plus size={20} />

@@ -47,7 +47,7 @@ export default function ApiaryPanel({ apiaries, activeApiary, onSelect, onSave, 
           </select>
         </label>
         {!compact && <>
-          <button type="button" onClick={() => openForm('create')} disabled={loading} className="inline-flex min-h-12 flex-1 items-center justify-center gap-2 rounded-lg bg-[#f8b400] px-3 py-3 text-sm font-bold text-[#2f2100] sm:flex-none sm:px-4 sm:text-base"><Plus size={18} />Добавить пасеку</button>
+          <button type="button" onClick={() => openForm('create')} disabled={loading} className="inline-flex min-h-12 flex-1 items-center justify-center gap-2 rounded-lg primary-action px-3 py-3 text-sm font-bold  sm:flex-none sm:px-4 sm:text-base"><Plus size={18} />Добавить пасеку</button>
           <button type="button" onClick={() => openForm('rename')} disabled={!activeApiary || loading} aria-label="Переименовать пасеку" className="rounded-lg border border-[#f1d88a] p-3 text-[#7a5a1a]"><Pencil size={20} /></button>
         </>}
         {activeApiary && <Link to="/location" className="inline-flex min-h-12 basis-full items-center justify-center gap-2 rounded-lg border border-[#f1d88a] px-4 py-3 font-bold text-[#7a5a1a] sm:basis-auto"><MapPin size={18} />{activeApiary.latitude == null ? 'Выбрать локацию' : 'Изменить локацию'}</Link>}
@@ -56,7 +56,7 @@ export default function ApiaryPanel({ apiaries, activeApiary, onSelect, onSave, 
       {!compact && <p className="mt-3 text-sm text-[#7a5a1a]">Количество не ограничено. У каждой пасеки — своя локация и погода.</p>}
       {mode && <form onSubmit={submit} className="mt-4 flex flex-wrap items-end gap-3">
         <label className="grid min-w-0 basis-full gap-2 text-sm font-bold text-[#7a5a1a] sm:flex-1 sm:basis-auto">{mode === 'rename' ? 'Новое название пасеки' : 'Название новой пасеки'}<input autoFocus aria-label="Название пасеки" required maxLength={120} value={name} onChange={(event) => setName(event.target.value)} placeholder="Например, Липовая роща" className="min-w-0 rounded-lg border-2 border-[#f1d88a] px-3 py-3 text-base text-[#2f2100]" /></label>
-        <button type="submit" disabled={saving || !name.trim()} className="rounded-lg bg-[#f8b400] px-4 py-3 font-bold disabled:opacity-50">{saving ? 'Сохраняю...' : 'Сохранить пасеку'}</button>
+        <button type="submit" disabled={saving || !name.trim()} className="rounded-lg primary-action px-4 py-3 font-bold disabled:opacity-50">{saving ? 'Сохраняю...' : 'Сохранить пасеку'}</button>
         <button type="button" disabled={saving} onClick={() => setMode(null)} className="px-3 py-3 font-bold text-[#7a5a1a]">Отмена</button>
       </form>}
       </div>

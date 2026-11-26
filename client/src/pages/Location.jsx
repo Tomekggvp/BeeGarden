@@ -140,7 +140,7 @@ const Location = ({ session, apiary, onLocationSaved }) => {
             <span className="h-2 w-2 rounded-full bg-[#f8b400]"></span>
             BeeGarden
           </div>
-          <h1 className="break-words font-['Tenor_Sans'] text-5xl leading-none text-[#2f2100] sm:text-7xl">
+          <h1 className="break-words font-['Rubik'] text-5xl leading-none text-[#2f2100] sm:text-7xl">
             Локация: {apiary.name}
           </h1>
           <p className="mt-3 max-w-2xl text-base font-semibold text-[#6f5a26]">
@@ -169,7 +169,7 @@ const Location = ({ session, apiary, onLocationSaved }) => {
             type="button"
             onClick={handleSave}
             disabled={isSaving}
-            className="inline-flex h-12 items-center gap-2 rounded-lg bg-[#f8b400] px-4 font-black text-[#2b1a00] transition-all hover:bg-[#ffd24a] active:scale-[0.99] disabled:opacity-60"
+            className="inline-flex h-12 items-center gap-2 rounded-lg primary-action px-4 font-black  transition-all  active:scale-[0.99] disabled:opacity-60"
           >
             <Save size={18} />
             {isSaving ? 'Сохраняю...' : 'Сохранить'}

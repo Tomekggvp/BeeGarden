@@ -28,7 +28,6 @@ const VetControl = lazy(() => import('./pages/VetControl'))
 const Charts = lazy(() => import('./pages/Charts'))
 
 const HIVES_CACHE_PREFIX = 'beegarden:hives:v2:'
-const WEATHER_OVERLAY_COLLAPSED_KEY = 'beegarden:weather-overlay:collapsed'
 
 const normalizeHives = (hives = []) =>
   hives.map((hive) => ({
@@ -90,13 +89,7 @@ function App() {
   const [allHives, setHives] = useState([])
   const [apiaryState, setApiaryState] = useState({ userId: null, rows: [], selectedId: '', loading: true, error: '' })
   const [openModalIds, setOpenModalIds] = useState([])
-  const [isWeatherOverlayCollapsed, setIsWeatherOverlayCollapsed] = useState(() => {
-    try {
-      return localStorage.getItem(WEATHER_OVERLAY_COLLAPSED_KEY) === '1'
-    } catch {
-      return false
-    }
-  })
+  const [isWeatherOverlayCollapsed, setIsWeatherOverlayCollapsed] = useState(true)
 
   useScrollLock(openModalIds.length > 0)
 
@@ -281,17 +274,7 @@ function App() {
   }, [session?.user?.id])
 
   const handleToggleWeatherOverlay = useCallback(() => {
-    setIsWeatherOverlayCollapsed((currentValue) => {
-      const nextValue = !currentValue
-
-      try {
-        localStorage.setItem(WEATHER_OVERLAY_COLLAPSED_KEY, nextValue ? '1' : '0')
-      } catch {
-        // ignore
-      }
-
-      return nextValue
-    })
+    setIsWeatherOverlayCollapsed((currentValue) => !currentValue)
   }, [])
 
   if (loading) {

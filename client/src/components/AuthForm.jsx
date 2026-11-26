@@ -30,7 +30,7 @@ const AuthForm = () => {
             <span className="h-2 w-2 rounded-full bg-[#f8b400]"></span>
             BeeGarden
           </div>
-          <h1 className="font-['Tenor_Sans'] text-5xl leading-none text-[#2f2100]">
+          <h1 className="font-['Rubik'] text-5xl leading-none text-[#2f2100]">
             Вход
           </h1>
         </div>
@@ -60,7 +60,7 @@ const AuthForm = () => {
           <button
             type="submit"
             disabled={loading}
-            className="w-full rounded-lg bg-[#f8b400] py-4 font-black text-[#2b1a00] shadow-sm transition-all hover:bg-[#ffd24a] active:scale-95 disabled:opacity-60"
+            className="w-full rounded-lg primary-action py-4 font-black   transition-all  active:scale-95 disabled:opacity-60"
           >
             {loading ? 'Подождите...' : 'Войти'}
           </button>
